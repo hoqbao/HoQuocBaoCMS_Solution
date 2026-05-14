@@ -19,22 +19,22 @@ namespace CMS.Data.Entities
     public class Customer
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; set; }// Khóa chính
 
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; }// Họ và tên khách hàng
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; }// Địa chỉ email khách hàng
 
-        public string? Phone { get; set; }
+        public string? Phone { get; set; }// Số điện thoại khách hàng
 
-        public string? Address { get; set; }
+        public string? Address { get; set; }// Địa chỉ giao hàng của khách hàng
 
         [Required]
         public string Password { get; set; } // Lưu mật khẩu thô theo yêu cầu tối giản
 
-        public virtual ICollection<Order>? Orders { get; set; }
+        public virtual ICollection<Order>? Orders { get; set; }// Danh sách đơn hàng của khách hàng
     }
 }

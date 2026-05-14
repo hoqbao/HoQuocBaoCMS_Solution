@@ -15,10 +15,10 @@ namespace CMS.Data.Entities
 {
     public class User
     {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        public string PasswordHash { get; set; }
-        public string FullName { get; set; }
+        public int Id { get; set; }// Mã người dùng
+        public string Username { get; set; }// Tên đăng nhập
+        public string PasswordHash { get; set; }// Mật khẩu đã được băm
+        public string FullName { get; set; }// Họ và tên đầy đủ
         public string Role { get; set; } // Quản trị viên hoặc Biên tập viên
     }
 }

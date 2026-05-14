@@ -19,21 +19,21 @@ namespace CMS.Data.Entities
     public class OrderDetail
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; set; }// Khóa chính
 
-        public int OrderId { get; set; }
+        public int OrderId { get; set; }// Khóa ngoại liên kết tới Order
 
-        public int ProductId { get; set; }
+        public int ProductId { get; set; }// Khóa ngoại liên kết tới Product
 
-        public int Quantity { get; set; }
+        public int Quantity { get; set; }// Số lượng sản phẩm trong đơn hàng
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; } // Giá tại thời điểm mua
 
         [ForeignKey("OrderId")]
-        public virtual Order? Order { get; set; }
+        public virtual Order? Order { get; set; }// Thông tin đơn hàng chứa chi tiết này
 
         [ForeignKey("ProductId")]
-        public virtual Product? Product { get; set; }
+        public virtual Product? Product { get; set; }// Thông tin sản phẩm được đặt trong chi tiết đơn hàng này
     }
 }

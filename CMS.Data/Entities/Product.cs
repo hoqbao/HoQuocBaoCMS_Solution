@@ -19,25 +19,25 @@ namespace CMS.Data.Entities
     public class Product
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; set; }// Khóa chính, tự động tăng
 
         [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
-        public string Name { get; set; }
+        public string Name { get; set; }// Tên sản phẩm
 
-        public string? Description { get; set; }
+        public string? Description { get; set; }// Mô tả chi tiết về sản phẩm
 
         [Range(0, double.MaxValue)]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; }
+        public decimal Price { get; set; }// Giá sản phẩm
 
-        public int StockQuantity { get; set; }
+        public int StockQuantity { get; set; }// Số lượng tồn kho của sản phẩm
 
-        public string? ImageUrl { get; set; }
+        public string? ImageUrl { get; set; }// URL hình ảnh sản phẩm
 
         // Khóa ngoại nối tới CategoryProduct
-        public int CategoryProductId { get; set; }
+        public int CategoryProductId { get; set; }// Khóa ngoại liên kết tới CategoryProduct
 
         [ForeignKey("CategoryProductId")]
-        public virtual CategoryProduct? CategoryProduct { get; set; }
+        public virtual CategoryProduct? CategoryProduct { get; set; }// Thông tin danh mục sản phẩm mà sản phẩm này thuộc về
     }
 }
