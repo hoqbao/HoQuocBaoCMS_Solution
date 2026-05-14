@@ -7,8 +7,8 @@ public class CategoryController : Controller
     {
         // Tạo danh sách dữ liệu mẫu trực tiếp trong code
         var list = new List<Category> {
-            new Category { Id = 1, Name = "Tin Công Nghệ", Description = "Review Laptop, AI" },
-            new Category { Id = 2, Name = "Giáo Dục", Description = "Thông tin tuyển sinh" }
+            new Category { Id = 1, Name = "Công Nghệ Thông Tin", Description = "Lập trình, Thiết kế đồ họa" },
+            new Category { Id = 2, Name = "Công Nghệ Ô tô", Description = "Sữa chữa ô tô" }
         };
         return View(list); // Gửi danh sách này sang giao diện
     }
