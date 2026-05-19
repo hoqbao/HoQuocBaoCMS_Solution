@@ -1,0 +1,32 @@
+﻿@model List<CMS.Data.Entities.Post>
+
+@{
+    ViewData["Title"] = "Danh sách bài viết";
+}
+
+<h2 class="text-danger mb-4">DANH SÁCH BÀI VIẾT MỚI NHẤT</h2>
+
+<div class="row">
+    @foreach (var post in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <img src="@post.ImageUrl" class="card-img-top" alt="Thumbnail" />
+
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        @post.Title
+                    </h5>
+
+                    <p class="card-text">
+                        @post.Content
+                    </p>
+
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
