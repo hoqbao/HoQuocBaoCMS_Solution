@@ -3,20 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.Backend.Controllers
 {
-    public class CategoryController : Controller
+    public class UserController : Controller
     {
         private readonly AppDbContext _context;
 
-        public CategoryController(AppDbContext context)
+        public UserController(AppDbContext context)
         {
             _context = context;
         }
 
         public IActionResult Index()
         {
-            var data = _context.Categories.ToList();
+            var users = _context.Users.ToList();
 
-            return View(data);
+            return View(users);
         }
     }
 }

@@ -1,0 +1,48 @@
+﻿@model IEnumerable<CMS.Data.Entities.Post>
+
+@{
+    ViewData["Title"] = "Danh sách bài viết";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">DANH SÁCH BÀI VIẾT MỚI NHẤT</h2>
+
+    <div class="row">
+        @foreach (var post in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <img src="@post.ImageUrl" class="card-img-top" alt="Thumbnail" />
+
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@post.Title</h5>
+
+                        <p class="card-text text-truncate">
+                            @post.Content
+                        </p>
+
+                        <p class="text-muted small">
+                            Ngày đăng: @post.CreatedDate.ToString("dd/MM/yyyy")
+                        </p>
+
+                        <p class="small">
+                            Danh mục:
+                            @if (post.Category != null)
+                            {
+                                <strong>@post.Category.Name</strong>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có danh mục</span>
+                            }
+                        </p>
+
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
