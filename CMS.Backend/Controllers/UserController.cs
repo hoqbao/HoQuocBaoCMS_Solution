@@ -1,4 +1,10 @@
-﻿using CMS.Data.Data;
+﻿/*
+Họ và tên: Hồ Quốc Bảo
+MSSV: 2123110096
+Ngày thực hiện: 22/05/2026
+*/
+
+using CMS.Data.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.Backend.Controllers

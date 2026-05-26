@@ -1,4 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿/*
+Họ và tên: Hồ Quốc Bảo
+MSSV: 2123110096
+Ngày thực hiện: 22/05/2026
+*/
+
+using System.ComponentModel.DataAnnotations;
 
 namespace YourProjectName.Models
 {

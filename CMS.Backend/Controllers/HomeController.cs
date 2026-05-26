@@ -1,31 +1,33 @@
-using System.Diagnostics;
+/*
+H? và tên: H? Qu?c B?o
+MSSV: 2123110096
+Ngày th?c hi?n: 15/05/2026
+*/
+
+using CMS.Data.Data;
 using Microsoft.AspNetCore.Mvc;
-using CMS.Backend.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMS.Backend.Controllers;
-
-public class HomeController : Controller
+namespace CMS.Backend.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        private readonly AppDbContext _context;
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+        public HomeController(AppDbContext context)
+        {
+            _context = context;
+        }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        public IActionResult Index()
+        {
+            var latestPosts = _context.Posts
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(3)
+                .ToList();
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(latestPosts);
+        }
     }
 }
