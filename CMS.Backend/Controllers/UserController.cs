@@ -2,9 +2,12 @@
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CMS.Backend.Helpers;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class UserController : Controller
     {
         private readonly AppDbContext _context;
@@ -39,6 +42,8 @@ namespace CMS.Backend.Controllers
 
             if (ModelState.IsValid)
             {
+                model.PasswordHash = PasswordHelper.HashPassword(model.PasswordHash);
+
                 _context.Users.Add(model);
                 _context.SaveChanges();
 
@@ -75,7 +80,7 @@ namespace CMS.Backend.Controllers
 
             if (!string.IsNullOrEmpty(NewPassword))
             {
-                model.PasswordHash = NewPassword;
+                model.PasswordHash = PasswordHelper.HashPassword(NewPassword);
             }
             else
             {
