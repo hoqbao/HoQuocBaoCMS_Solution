@@ -28,8 +28,8 @@
         <img src="@Model.ImageUrl" class="img-fluid rounded shadow-sm" alt="Thumbnail" />
     </div>
 
-    <div class="mt-4">
-        <p>@Model.Content</p>
+    <div class="post-content">
+        @Html.Raw(Model.Content)
     </div>
 
     <a asp-action="Index" class="btn btn-secondary">

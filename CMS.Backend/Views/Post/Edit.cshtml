@@ -1,0 +1,75 @@
+﻿@model CMS.Data.Entities.Post
+
+@{
+    ViewData["Title"] = "Sửa bài viết";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-warning">SỬA BÀI VIẾT</h2>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedDate" />
+        <input type="hidden" asp-for="ImageUrl" />
+
+        <div class="mb-3">
+            <label class="form-label">Tiêu đề</label>
+            <input asp-for="Title" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nội dung</label>
+            <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Ảnh hiện tại</label>
+            <br />
+
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl"
+                     style="max-width: 250px; height: auto;"
+                     class="img-thumbnail mb-2" />
+            }
+            else
+            {
+                <p class="text-muted">Chưa có ảnh</p>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Chọn ảnh mới nếu muốn thay đổi</label>
+            <input type="file" name="uploadImage" class="form-control" accept="image/*" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Danh mục</label>
+            <select asp-for="CategoryId" asp-items="ViewBag.CategoryList" class="form-select">
+                <option value="0">-- Chọn danh mục --</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-warning">
+            Cập nhật bài viết
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Quay lại
+        </a>
+    </form>
+    @section Scripts {
+        <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+        <script>
+            ClassicEditor
+                .create(document.querySelector('#Content'))
+                .catch(error => {
+                    console.error(error);
+                });
+        </script>
+    }
+</div>

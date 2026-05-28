@@ -1,7 +1,7 @@
-/*
-H? v� t�n: H? Qu?c B?o
+﻿/*
+Họ và tên: Hồ Quốc Bảo
 MSSV: 2123110096
-Ng�y th?c hi?n: 15/05/2026
+Ngày thực hiện: 15/05/2026
 */
 
 using CMS.Data.Data;
@@ -28,6 +28,14 @@ namespace CMS.Backend.Controllers
                 .ToList();
 
             return View(latestPosts);
+        }
+        public IActionResult Dashboard()
+        {
+            ViewBag.TotalCategories = _context.Categories.Count();
+            ViewBag.TotalPosts = _context.Posts.Count();
+            ViewBag.TotalUsers = _context.Users.Count();
+
+            return View();
         }
     }
 }
