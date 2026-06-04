@@ -1,13 +1,18 @@
 ﻿import axiosClient from '../api/axiosClient';
 
 const blogService = {
-    getBlogCategories: () => {
-        const url = '/Categories';
+    getAllPosts: () => {
+        const url = '/Posts';
         return axiosClient.get(url);
     },
 
-    getAllPosts: () => {
-        const url = '/Posts';
+    getPostById: (id) => {
+        const url = `/Posts/${id}`;
+        return axiosClient.get(url);
+    },
+
+    getBlogCategories: () => {
+        const url = '/Categories';
         return axiosClient.get(url);
     }
 };
