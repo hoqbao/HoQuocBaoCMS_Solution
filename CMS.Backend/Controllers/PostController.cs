@@ -5,76 +5,202 @@ Ngày thực hiện: 15/05/2026
 */
 
 using CMS.Data.Data;
+using CMS.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PostsController : ControllerBase
+    [Authorize]
+    public class PostController : Controller
     {
         private readonly AppDbContext _context;
 
-        public PostsController(AppDbContext context)
+        public PostController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/posts
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult Index(int? id)
         {
-            var posts = await _context.Posts
-                .OrderByDescending(p => p.Id)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.Title,
-                    p.ImageUrl,
-                    p.CreatedDate,
-                    CategoryName = p.Category != null ? p.Category.Name : "Chưa có danh mục"
-                })
-                .ToListAsync();
+            var postsQuery = _context.Posts
+                .Include(p => p.Category)
+                .AsQueryable();
 
-            return Ok(posts);
+            if (id != null)
+            {
+                postsQuery = postsQuery.Where(p => p.CategoryId == id);
+            }
+
+            var posts = postsQuery
+                .OrderByDescending(p => p.CreatedDate)
+                .ToList();
+
+            return View(posts);
         }
 
-        // GET: api/posts/category/1
-        [HttpGet("category/{categoryId}")]
-        public async Task<IActionResult> GetByCategory(int categoryId)
+        public IActionResult Details(int id)
         {
-            var posts = await _context.Posts
-                .Where(p => p.CategoryId == categoryId)
-                .OrderByDescending(p => p.Id)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.Title,
-                    p.ImageUrl,
-                    p.CreatedDate
-                })
-                .ToListAsync();
-
-            return Ok(posts);
-        }
-
-        // GET: api/posts/1
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetDetail(int id)
-        {
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var post = _context.Posts
+                .Include(p => p.Category)
+                .FirstOrDefault(p => p.Id == id);
 
             if (post == null)
             {
-                return NotFound(new
-                {
-                    message = "Không tìm thấy bài viết này trong hệ thống"
-                });
+                return NotFound();
             }
 
-            return Ok(post);
+            return View(post);
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            ViewBag.CategoryList = new SelectList(_context.Categories.ToList(), "Id", "Name");
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(Post model, IFormFile? uploadImage)
+        {
+            ModelState.Remove("Category");
+            ModelState.Remove("ImageUrl");
+            ModelState.Remove("uploadImage");
+
+            if (model.CategoryId == 0)
+            {
+                ModelState.AddModelError("CategoryId", "Vui lòng chọn danh mục.");
+            }
+
+            if (model.CreatedDate == default)
+            {
+                model.CreatedDate = DateTime.Now;
+            }
+
+            if (uploadImage != null && uploadImage.Length > 0)
+            {
+                string folder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads"
+                );
+
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    uploadImage.CopyTo(stream);
+                }
+
+                model.ImageUrl = "/uploads/" + fileName;
+            }
+
+            if (ModelState.IsValid)
+            {
+                _context.Posts.Add(model);
+                _context.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.CategoryList = new SelectList(_context.Categories.ToList(), "Id", "Name", model.CategoryId);
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var post = _context.Posts.Find(id);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.CategoryList = new SelectList(_context.Categories.ToList(), "Id", "Name", post.CategoryId);
+
+            return View(post);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(Post model, IFormFile? uploadImage)
+        {
+            ModelState.Remove("Category");
+            ModelState.Remove("ImageUrl");
+            ModelState.Remove("uploadImage");
+
+            if (model.CategoryId == 0)
+            {
+                ModelState.AddModelError("CategoryId", "Vui lòng chọn danh mục.");
+            }
+
+            if (uploadImage != null && uploadImage.Length > 0)
+            {
+                string folder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads"
+                );
+
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    uploadImage.CopyTo(stream);
+                }
+
+                model.ImageUrl = "/uploads/" + fileName;
+            }
+            else
+            {
+                var oldPost = _context.Posts
+                    .AsNoTracking()
+                    .FirstOrDefault(p => p.Id == model.Id);
+
+                if (oldPost != null)
+                {
+                    model.ImageUrl = oldPost.ImageUrl;
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                _context.Posts.Update(model);
+                _context.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.CategoryList = new SelectList(_context.Categories.ToList(), "Id", "Name", model.CategoryId);
+
+            return View(model);
+        }
+
+        public IActionResult Delete(int id)
+        {
+            var post = _context.Posts.Find(id);
+
+            if (post != null)
+            {
+                _context.Posts.Remove(post);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }
