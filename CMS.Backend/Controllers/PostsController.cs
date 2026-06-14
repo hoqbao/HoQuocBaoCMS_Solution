@@ -26,7 +26,7 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetAll()
         {
             var posts = await _context.Posts
-                .OrderByDescending(p => p.Id)
+                .OrderBy(p => p.Id)
                 .Select(p => new
                 {
                     p.Id,

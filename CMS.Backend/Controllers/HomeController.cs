@@ -31,9 +31,30 @@ namespace CMS.Backend.Controllers
         }
         public IActionResult Dashboard()
         {
+            // Đếm dữ liệu từ SQL Server
             ViewBag.TotalCategories = _context.Categories.Count();
             ViewBag.TotalPosts = _context.Posts.Count();
             ViewBag.TotalUsers = _context.Users.Count();
+
+            ViewBag.TotalProductCategories = _context.CategoriesProducts.Count();
+            ViewBag.TotalProducts = _context.Products.Count();
+            ViewBag.TotalCustomers = _context.Customers.Count();
+            ViewBag.TotalOrders = _context.Orders.Count();
+            ViewBag.TotalOrderDetails = _context.OrderDetails.Count();
+
+            // Lấy 5 bài viết mới nhất từ SQL
+            ViewBag.LatestPosts = _context.Posts
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(5)
+                .ToList();
+
+            // Lấy 5 sản phẩm mới nhất từ SQL
+            ViewBag.LatestProducts = _context.Products
+                .Include(p => p.CategoryProduct)
+                .OrderByDescending(p => p.Id)
+                .Take(5)
+                .ToList();
 
             return View();
         }

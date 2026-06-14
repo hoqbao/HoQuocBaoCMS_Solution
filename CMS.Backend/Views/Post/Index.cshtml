@@ -1,63 +1,240 @@
 ﻿@model IEnumerable<CMS.Data.Entities.Post>
 
 @{
-    Layout = "_LayoutAdmin";
     ViewData["Title"] = "Quản lý bài viết";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-dark">DANH SÁCH BÀI VIẾT</h2>
+<style>
+    .post-page-header {
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 28px rgba(13, 110, 253, 0.25);
+    }
 
-        <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Thêm bài viết mới
-        </a>
+    .post-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    }
+
+    .post-table th {
+        background-color: #212529;
+        color: white;
+        vertical-align: middle;
+        font-weight: 600;
+    }
+
+    .post-table td {
+        vertical-align: middle;
+    }
+
+    .post-thumbnail {
+        width: 110px;
+        height: 80px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+        padding: 5px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .post-title {
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .post-content-preview {
+        color: #6c757d;
+        font-size: 14px;
+        max-width: 420px;
+    }
+
+    .empty-box {
+        padding: 42px;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .action-buttons {
+        white-space: nowrap;
+    }
+
+    .category-badge {
+        font-size: 13px;
+        padding: 7px 10px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="post-page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1 fw-bold">
+                    <i class="bi bi-file-earmark-text"></i> QUẢN LÝ BÀI VIẾT
+                </h2>
+
+                <p class="mb-0">
+                    Quản lý nội dung tin tức, xu hướng thời trang, bài viết blog và chuyên mục.
+                </p>
+            </div>
+
+            <div class="mt-3 mt-md-0">
+                <a asp-action="Create" class="btn btn-light fw-bold">
+                    <i class="bi bi-plus-circle"></i> Thêm bài viết mới
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div class="row">
-        @foreach (var item in Model)
-        {
-            <div class="col-md-4 mb-3">
-                <div class="card shadow-sm h-100">
-                    <img src="@item.ImageUrl" class="card-img-top" alt="Thumbnail" style="height:220px; object-fit:cover;" />
+    <div class="card post-card">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-list-ul text-primary"></i> Danh sách bài viết
+                    </h5>
 
-                    <div class="card-body">
-                        @if (item.Category != null)
-                        {
-                            <span class="badge bg-info text-dark">@item.Category.Name</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Chưa có danh mục</span>
-                        }
-
-                        <h5 class="card-title text-primary mt-2">@item.Title</h5>
-
-                        <p class="card-text text-truncate">@Html.Raw(item.Content)</p>
-
-                        <p class="text-muted small">
-                            Ngày đăng: @item.CreatedDate.ToString("dd/MM/yyyy")
-                        </p>
-
-                        <a href="/Post/Details/@item.Id" class="btn btn-outline-primary btn-sm">
-                            Xem chi tiết
-                        </a>
-
-                        <a asp-action="Edit"
-                           asp-route-id="@item.Id"
-                           class="btn btn-sm btn-outline-warning">
-                            Sửa
-                        </a>
-
-                        <a asp-action="Delete"
-                           asp-route-id="@item.Id"
-                           class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('Chúng ta có chắc chắn muốn xóa bài viết này không?')">
-                            <i class="bi bi-trash"></i> Xóa
-                        </a>
-                    </div>
+                    <small class="text-muted">
+                        Dữ liệu được lấy trực tiếp từ bảng Posts trong SQL Server
+                    </small>
                 </div>
+
+                <span class="badge bg-primary px-3 py-2 mt-2 mt-md-0">
+                    Tổng: @Model.Count() bài viết
+                </span>
             </div>
-        }
+        </div>
+
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0 post-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 70px;">ID</th>
+                                <th class="text-center" style="width: 140px;">Hình ảnh</th>
+                                <th>Bài viết</th>
+                                <th style="width: 180px;">Danh mục</th>
+                                <th style="width: 130px;">Ngày đăng</th>
+                                <th class="text-center" style="width: 230px;">Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="text-center fw-bold text-primary">
+                                        #@item.Id
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl"
+                                                 alt="@item.Title"
+                                                 class="post-thumbnail" />
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted small">
+                                                <i class="bi bi-image"></i>
+                                                <br />
+                                                Chưa có ảnh
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="post-title mb-1">
+                                            @item.Title
+                                        </div>
+
+                                        <div class="post-content-preview">
+                                            @{
+                                                var plainText = item.Content ?? "";
+                                                plainText = System.Text.RegularExpressions.Regex.Replace(plainText, "<.*?>", "");
+                                                if (plainText.Length > 120)
+                                                {
+                                                    plainText = plainText.Substring(0, 120) + "...";
+                                                }
+                                            }
+
+                                            @plainText
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (item.Category != null)
+                                        {
+                                            <span class="badge bg-info text-dark category-badge">
+                                                <i class="bi bi-folder2-open"></i> @item.Category.Name
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary category-badge">
+                                                Chưa có danh mục
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="text-muted">
+                                            <i class="bi bi-calendar-event"></i>
+                                            @item.CreatedDate.ToString("dd/MM/yyyy")
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center action-buttons">
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Xem
+                                        </a>
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil-square"></i> Sửa
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này không?')">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-box">
+                    <i class="bi bi-file-earmark-x" style="font-size: 52px;"></i>
+
+                    <h5 class="mt-3">
+                        Chưa có bài viết nào
+                    </h5>
+
+                    <p>
+                        Hãy thêm bài viết đầu tiên để bắt đầu quản lý nội dung website.
+                    </p>
+
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Thêm bài viết mới
+                    </a>
+                </div>
+            }
+        </div>
     </div>
 </div>

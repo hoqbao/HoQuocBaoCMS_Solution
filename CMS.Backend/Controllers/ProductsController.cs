@@ -1,7 +1,7 @@
 ﻿/*
 Họ và tên: Hồ Quốc Bảo
 MSSV: 2123110096
-Ngày thực hiện: 29/05/2026
+Ngày thực hiện: 5/06/2026
 */
 
 using CMS.Data.Data;
@@ -31,29 +31,14 @@ namespace CMS.Backend.Controllers
                 {
                     p.Id,
                     p.Name,
+                    p.Description,
                     p.Price,
                     p.StockQuantity,
-                    p.ImageUrl
-                })
-                .ToListAsync();
-
-            return Ok(products);
-        }
-
-        // GET: api/Products/categoryproduct/1
-        [HttpGet("categoryproduct/{categoryProductId}")]
-        public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
-        {
-            var products = await _context.Products
-                .Where(p => p.CategoryProductId == categoryProductId)
-                .OrderByDescending(p => p.Id)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.Name,
-                    p.Price,
-                    p.StockQuantity,
-                    p.ImageUrl
+                    p.ImageUrl,
+                    p.CategoryProductId,
+                    CategoryProductName = p.CategoryProduct != null
+                        ? p.CategoryProduct.Name
+                        : "Chưa có danh mục"
                 })
                 .ToListAsync();
 
@@ -65,7 +50,6 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetDetail(int id)
         {
             var product = await _context.Products
-                .Include(p => p.CategoryProduct)
                 .Where(p => p.Id == id)
                 .Select(p => new
                 {
@@ -91,6 +75,28 @@ namespace CMS.Backend.Controllers
             }
 
             return Ok(product);
+        }
+
+        // GET: api/Products/categoryproduct/1
+        [HttpGet("categoryproduct/{categoryProductId}")]
+        public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
+        {
+            var products = await _context.Products
+                .Where(p => p.CategoryProductId == categoryProductId)
+                .OrderByDescending(p => p.Id)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.StockQuantity,
+                    p.ImageUrl,
+                    p.CategoryProductId
+                })
+                .ToListAsync();
+
+            return Ok(products);
         }
     }
 }

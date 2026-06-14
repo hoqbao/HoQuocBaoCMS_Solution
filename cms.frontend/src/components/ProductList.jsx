@@ -1,81 +1,83 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import productService from '../services/productService';
 
-const ProductList = () => {
+const ProductList = ({ selectedCategory }) => {
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                setLoading(true);
-
                 const data = await productService.getAllProducts();
-
                 setProducts(data);
             } catch (error) {
-                console.error("Lỗi khi tải danh sách sản phẩm:", error);
-            } finally {
-                setLoading(false);
+                console.error('Lỗi khi tải sản phẩm:', error);
             }
         };
 
         fetchProducts();
     }, []);
 
-    if (loading) {
-        return (
-            <div className="text-center my-4">
-                Đang tải danh sách sản phẩm thời trang...
-            </div>
+    const filteredProducts = selectedCategory === 'Tất cả sản phẩm'
+        ? products
+        : products.filter(item =>
+            item.categoryProductName &&
+            item.categoryProductName.toLowerCase() === selectedCategory.toLowerCase()
         );
-    }
 
     return (
-        <div className="row">
-            {products.length === 0 ? (
-                <div className="col-12">
-                    <p className="text-muted">
-                        Chưa có sản phẩm nào trong hệ thống.
-                    </p>
+        <div className="product-shop-grid">
+            {filteredProducts.length === 0 ? (
+                <div className="no-filter-product">
+                    <i className="fa-solid fa-box-open"></i>
+                    <h5>Không có sản phẩm trong danh mục này</h5>
+                    <p>Vui lòng chọn danh mục khác hoặc thêm sản phẩm mới trong admin.</p>
                 </div>
             ) : (
-                products.map((item) => (
-                    <div className="col-md-6 mb-4" key={item.id}>
-                        <div className="card h-100 shadow-sm border">
-                            {item.imageUrl && (
+                filteredProducts.map(item => (
+                    <div className="shop-product-card" key={item.id}>
+                        <div className="product-badge">
+                            Bán chạy / Còn ở chợ
+                        </div>
+
+                        <div className="product-img-box">
+                            {item.imageUrl ? (
                                 <img
                                     src={`https://localhost:7076${item.imageUrl}`}
-                                    className="card-img-top"
                                     alt={item.name}
-                                    style={{
-                                        height: '220px',
-                                        objectFit: 'cover'
-                                    }}
-                                />                            )}
+                                />
+                            ) : (
+                                <div className="no-product-img">
+                                    No image
+                                </div>
+                            )}
+                        </div>
 
-                            <div className="card-body">
-                                <h5 className="card-title font-weight-bold text-dark">
-                                    {item.name}
-                                </h5>
+                        <div className="product-card-body">
+                            <h5 title={item.name}>
+                                {item.name}
+                            </h5>
 
-                                <p className="card-text text-danger font-weight-bold">
-                                    Giá bán:{' '}
-                                    {new Intl.NumberFormat('vi-VN', {
-                                        style: 'currency',
-                                        currency: 'VND'
-                                    }).format(item.price)}
-                                </p>
+                            <p className="product-price">
+                                {new Intl.NumberFormat('vi-VN').format(item.price)} đ
+                            </p>
 
-                                <p className="card-text small text-muted">
-                                    Số lượng tồn kho: {item.stockQuantity} sản phẩm
-                                </p>
-                            </div>
+                            <div className="product-card-actions">
+                                <Link
+                                    to={`/product/${item.id}`}
+                                    className="detail-btn"
+                                >
+                                    <i className="fa-solid fa-eye me-1"></i>
+                                    Chi tiết
+                                </Link>
 
-                            <div className="card-footer bg-transparent border-top-0">
-                                <button className="btn btn-outline-primary btn-block btn-sm">
-                                    <i className="fa-solid fa-cart-plus mr-1"></i> Xem chi tiết
-                                </button>
+                                <Link
+                                    to={`/product/${item.id}`}
+                                    className="buy-btn"
+                                >
+                                    <i className="fa-solid fa-cart-shopping me-1"></i>
+                                     Mua ngay
+                                </Link>
                             </div>
                         </div>
                     </div>

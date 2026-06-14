@@ -1,0 +1,169 @@
+﻿@model IEnumerable<CMS.Data.Entities.Customer>
+
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #0d6efd, #20c997);
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 28px rgba(13, 110, 253, 0.25);
+    }
+
+    .main-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    }
+
+    .data-table th {
+        background-color: #212529;
+        color: white;
+        vertical-align: middle;
+    }
+
+    .data-table td {
+        vertical-align: middle;
+    }
+
+    .customer-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0d6efd, #20c997);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+    }
+
+    .empty-box {
+        padding: 42px;
+        text-align: center;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1 fw-bold">
+                    <i class="bi bi-person-badge"></i> QUẢN LÝ KHÁCH HÀNG
+                </h2>
+
+                <p class="mb-0">
+                    Theo dõi thông tin khách hàng mua hàng trên hệ thống thời trang.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card main-card">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-list-ul text-primary"></i> Danh sách khách hàng
+                    </h5>
+
+                    <small class="text-muted">
+                        Dữ liệu lấy từ bảng Customers trong SQL Server
+                    </small>
+                </div>
+
+                <span class="badge bg-primary px-3 py-2 mt-2 mt-md-0">
+                    Tổng: @Model.Count() khách hàng
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0 data-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 80px;">ID</th>
+                                <th style="width: 90px;">Avatar</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ</th>
+                                <th class="text-center" style="width: 120px;">Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var firstLetter = !string.IsNullOrEmpty(item.FullName)
+                                ? item.FullName.Substring(0, 1).ToUpper()
+                                : "K";
+
+                                <tr>
+                                    <td class="text-center fw-bold text-primary">
+                                        #@item.Id
+                                    </td>
+
+                                    <td>
+                                        <div class="customer-avatar">
+                                            @firstLetter
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <strong>@item.FullName</strong>
+                                    </td>
+
+                                    <td>
+                                        <i class="bi bi-envelope text-primary"></i> @item.Email
+                                    </td>
+
+                                    <td>
+                                        <i class="bi bi-telephone text-success"></i> @item.Phone
+                                    </td>
+
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Address))
+                                        {
+                                            @item.Address
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Chưa có địa chỉ</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-center">
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng này không?')">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-box">
+                    <i class="bi bi-person-badge" style="font-size: 52px;"></i>
+                    <h5 class="mt-3">Chưa có khách hàng nào</h5>
+                    <p>Dữ liệu khách hàng sẽ xuất hiện khi có người mua hàng.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

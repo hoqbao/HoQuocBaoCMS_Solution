@@ -35,7 +35,7 @@ namespace CMS.Backend.Controllers
             }
 
             var posts = postsQuery
-                .OrderByDescending(p => p.CreatedDate)
+                .OrderBy(p => p.CreatedDate)
                 .ToList();
 
             return View(posts);

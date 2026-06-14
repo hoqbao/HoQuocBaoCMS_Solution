@@ -4,6 +4,11 @@ const productService = {
     getAllProducts: () => {
         const url = '/Products';
         return axiosClient.get(url);
+    },
+
+    getProductById: (id) => {
+        const url = `/Products/${id}`;
+        return axiosClient.get(url);
     }
 };
 
