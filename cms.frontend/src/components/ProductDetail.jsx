@@ -112,7 +112,7 @@ const ProductDetail = () => {
     return (
         <div className="product-detail-page">
             <div className="mb-3">
-                <Link to="/" className="btn btn-outline-secondary">
+                <Link to="/Home" className="btn btn-outline-secondary">
                     <i className="fa-solid fa-arrow-left me-2"></i>
                     Quay lại
                 </Link>

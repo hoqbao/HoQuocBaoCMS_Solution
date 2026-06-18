@@ -1,13 +1,16 @@
 ﻿import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import ProductList from './components/ProductList.jsx';
 import ProductDetail from './components/ProductDetail.jsx';
 import PostList from './components/PostList.jsx';
 import CartPage from './components/CartPage.jsx';
 import PostDetail from './components/PostDetail.jsx';
 import BannerSlider from './components/BannerSlider.jsx';
-
+import LoginPage from './components/LoginPage.jsx';
+import RegisterPage from './components/RegisterPage.jsx';
+import StorePage from './components/StorePage.jsx';
+import BlogPage from './components/BlogPage.jsx';
+import AboutPage from './components/AboutPage.jsx';
 import './App.css';
 
 function HomePage() {
@@ -25,7 +28,7 @@ function HomePage() {
             <BannerSlider />
 
             <section className="category-tabs">
-                {categories.map(category => (
+                {categories.map((category) => (
                     <button
                         key={category}
                         className={
@@ -62,17 +65,20 @@ function HomePage() {
                     <p>Cập nhật những mẹo phối đồ và tin tức phong cách mới nhất</p>
                 </div>
 
-                <PostList />
+                <PostList limit={3} />
             </section>
         </>
     );
-} function ProductDetailPage() {
+}
+
+function ProductDetailPage() {
     return (
         <section className="home-section">
             <ProductDetail />
         </section>
     );
 }
+
 function PostDetailPage() {
     return (
         <section className="home-section">
@@ -80,21 +86,105 @@ function PostDetailPage() {
         </section>
     );
 }
+function HeaderSearch() {
+    const [keyword, setKeyword] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = (event) => {
+        event.preventDefault();
+
+        const searchText = keyword.trim();
+
+        if (!searchText) {
+            navigate('/store');
+            return;
+        }
+
+        navigate(`/store?search=${encodeURIComponent(searchText)}`);
+    };
+
+    return (
+        <form className="shop-search" onSubmit={handleSearch}>
+            <input
+                type="text"
+                placeholder="Tìm kiếm mẫu đầm dạ hội, sơ mi công sở..."
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+            />
+
+            <button type="submit" title="Tìm kiếm">
+                <i className="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </form>
+    );
+}
 function App() {
+    const savedUser = localStorage.getItem('authUser');
+    const [currentUser, setCurrentUser] = useState(
+        savedUser ? JSON.parse(savedUser) : null
+    );
+
+    const handleLogin = (user) => {
+        localStorage.setItem('authUser', JSON.stringify(user));
+        setCurrentUser(user);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('authUser');
+        setCurrentUser(null);
+    };
+
     return (
         <BrowserRouter>
             <div className="shop-page">
                 <div className="top-strip">
-                    <div>
-                        <i className="fa-solid fa-phone me-1"></i>
-                        Hotline: 033 766 2568
-                    </div>
+                    <div className="top-strip-content">
+                        <div className="top-contact">
+                            <span>
+                                <i className="fa-solid fa-phone me-1"></i>
+                                Hotline: 033 766 2568
+                            </span>
 
-                    <div>
-                        <i className="fa-solid fa-envelope me-1"></i>
-                        Email: support@quocbaocms.retail
-                    </div>
+                            <span>
+                                <i className="fa-solid fa-envelope me-1"></i>
+                                Email: support@quocbaocms.retail
+                            </span>
+                        </div>
 
+                        <div className="top-auth">
+                            {currentUser ? (
+                                <>
+                                    <span className="logged-user">
+                                        <i className="fa-solid fa-circle-user me-1"></i>
+                                        Xin chào, {currentUser.fullName || currentUser.username}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        className="logout-btn"
+                                        onClick={handleLogout}
+                                    >
+                                        <i className="fa-solid fa-right-from-bracket me-1"></i>
+                                        Đăng xuất
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/login" className="top-auth-link login-link">
+                                        <i className="fa-solid fa-right-to-bracket me-1"></i>
+                                        Đăng nhập
+                                    </Link>
+
+                                    <span className="top-auth-divider">|</span>
+
+                                    <Link to="/register" className="top-auth-link register-link">
+                                        <i className="fa-solid fa-user-plus me-1"></i>
+                                        Đăng ký
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <header className="shop-main-header">
@@ -102,16 +192,7 @@ function App() {
                         QuocBao.<span>Fashion</span>
                     </Link>
 
-                    <div className="shop-search">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm mẫu đầm dạ hội, sơ mi công sở..."
-                        />
-
-                        <button>
-                            <i className="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                    </div>
+                    <HeaderSearch />
 
                     <div className="shop-header-actions">
                         <Link to="/cart" className="mini-action-btn cart-mini-btn">
@@ -122,18 +203,30 @@ function App() {
                 </header>
 
                 <nav className="shop-navbar">
-                    <Link to="/">Trang Chủ</Link>
-                    <Link to="/">Cửa Hàng</Link>
-                    <Link to="/">Tin Tức / Blog</Link>
-                    <Link to="/">Về Chúng Tôi</Link>
+                    <Link to="/Home">Trang Chủ</Link>
+                    <Link to="/Store">Cửa Hàng</Link>
+                    <Link to="/blog">Tin Tức / Blog</Link>
+                    <Link to="/about">Về Chúng Tôi</Link>
                 </nav>
 
                 <main className="shop-content">
                     <Routes>
-                        <Route path="/" element={<HomePage />} />
+                        <Route path="/Home" element={<HomePage />} />
                         <Route path="/product/:id" element={<ProductDetailPage />} />
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/blog/:id" element={<PostDetailPage />} />
+                        <Route path="/store" element={<StorePage />} />
+                        <Route path="/blog" element={<BlogPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route
+                            path="/login"
+                            element={<LoginPage onLogin={handleLogin} />}
+                        />
+
+                        <Route
+                            path="/register"
+                            element={<RegisterPage onLogin={handleLogin} />}
+                        />
                     </Routes>
                 </main>
 

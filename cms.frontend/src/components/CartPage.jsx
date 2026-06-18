@@ -33,7 +33,7 @@ const CartPage = () => {
                     </p>
                 </div>
 
-                <Link to="/" className="btn btn-outline-secondary">
+                <Link to="/Home" className="btn btn-outline-secondary">
                     Tiếp tục mua hàng
                 </Link>
             </div>
@@ -44,7 +44,7 @@ const CartPage = () => {
                     <h5>Giỏ hàng đang trống</h5>
                     <p>Hãy chọn sản phẩm yêu thích và thêm vào giỏ hàng.</p>
 
-                    <Link to="/" className="btn btn-primary">
+                    <Link to="/Home" className="btn btn-primary">
                         Mua sắm ngay
                     </Link>
                 </div>
