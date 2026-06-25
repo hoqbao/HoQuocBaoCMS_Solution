@@ -23,31 +23,52 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
+            int pageSize = 10;
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            var totalItems = _context.Products.Count();
+
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             var products = _context.Products
                 .Include(p => p.CategoryProduct)
                 .OrderBy(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             return View(products);
         }
-
         [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.CategoryProductList = new SelectList(
-                _context.CategoriesProducts.ToList(),
-                "Id",
-                "Name"
-            );
+            LoadCategoryProductList();
 
-            return View();
+            return View(new Product());
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Product model, IFormFile? uploadImage)
         {
+            if (model == null)
+            {
+                ModelState.AddModelError("", "Dữ liệu sản phẩm không hợp lệ.");
+                LoadCategoryProductList();
+                return View(new Product());
+            }
+
             ModelState.Remove("CategoryProduct");
             ModelState.Remove("ImageUrl");
             ModelState.Remove("uploadImage");
@@ -81,22 +102,16 @@ namespace CMS.Backend.Controllers
                 model.ImageUrl = "/uploads/" + fileName;
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Products.Add(model);
-                _context.SaveChanges();
-
-                return RedirectToAction("Index");
+                LoadCategoryProductList(model.CategoryProductId);
+                return View(model);
             }
 
-            ViewBag.CategoryProductList = new SelectList(
-                _context.CategoriesProducts.ToList(),
-                "Id",
-                "Name",
-                model.CategoryProductId
-            );
+            _context.Products.Add(model);
+            _context.SaveChanges();
 
-            return View(model);
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -109,19 +124,22 @@ namespace CMS.Backend.Controllers
                 return NotFound();
             }
 
-            ViewBag.CategoryProductList = new SelectList(
-                _context.CategoriesProducts.ToList(),
-                "Id",
-                "Name",
-                product.CategoryProductId
-            );
+            LoadCategoryProductList(product.CategoryProductId);
 
             return View(product);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(Product model, IFormFile? uploadImage)
         {
+            if (model == null)
+            {
+                ModelState.AddModelError("", "Dữ liệu sản phẩm không hợp lệ.");
+                LoadCategoryProductList();
+                return View(new Product());
+            }
+
             ModelState.Remove("CategoryProduct");
             ModelState.Remove("ImageUrl");
             ModelState.Remove("uploadImage");
@@ -129,6 +147,15 @@ namespace CMS.Backend.Controllers
             if (model.CategoryProductId == 0)
             {
                 ModelState.AddModelError("CategoryProductId", "Vui lòng chọn danh mục sản phẩm.");
+            }
+
+            var oldProduct = _context.Products
+                .AsNoTracking()
+                .FirstOrDefault(p => p.Id == model.Id);
+
+            if (oldProduct == null)
+            {
+                return NotFound();
             }
 
             if (uploadImage != null && uploadImage.Length > 0)
@@ -156,32 +183,19 @@ namespace CMS.Backend.Controllers
             }
             else
             {
-                var oldProduct = _context.Products
-                    .AsNoTracking()
-                    .FirstOrDefault(p => p.Id == model.Id);
-
-                if (oldProduct != null)
-                {
-                    model.ImageUrl = oldProduct.ImageUrl;
-                }
+                model.ImageUrl = oldProduct.ImageUrl;
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Products.Update(model);
-                _context.SaveChanges();
-
-                return RedirectToAction("Index");
+                LoadCategoryProductList(model.CategoryProductId);
+                return View(model);
             }
 
-            ViewBag.CategoryProductList = new SelectList(
-                _context.CategoriesProducts.ToList(),
-                "Id",
-                "Name",
-                model.CategoryProductId
-            );
+            _context.Products.Update(model);
+            _context.SaveChanges();
 
-            return View(model);
+            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Delete(int id)
@@ -194,7 +208,17 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        private void LoadCategoryProductList(int? selectedId = null)
+        {
+            ViewBag.CategoryProductList = new SelectList(
+                _context.CategoriesProducts.OrderBy(c => c.Name).ToList(),
+                "Id",
+                "Name",
+                selectedId
+            );
         }
     }
 }

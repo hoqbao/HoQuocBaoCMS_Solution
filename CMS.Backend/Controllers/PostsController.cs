@@ -5,6 +5,7 @@ Ngày thực hiện: 15/05/2026
 */
 
 using CMS.Data.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace CMS.Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class PostsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -26,7 +28,8 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetAll()
         {
             var posts = await _context.Posts
-                .OrderBy(p => p.Id)
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedDate)
                 .Select(p => new
                 {
                     p.Id,
@@ -34,7 +37,10 @@ namespace CMS.Backend.Controllers
                     p.Content,
                     p.ImageUrl,
                     p.CreatedDate,
-                    CategoryName = p.Category != null ? p.Category.Name : "Chưa có danh mục"
+                    p.CategoryId,
+                    CategoryName = p.Category != null
+                        ? p.Category.Name
+                        : "Chưa có danh mục"
                 })
                 .ToListAsync();
 
@@ -46,6 +52,7 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetDetail(int id)
         {
             var post = await _context.Posts
+                .Include(p => p.Category)
                 .Where(p => p.Id == id)
                 .Select(p => new
                 {
@@ -55,7 +62,9 @@ namespace CMS.Backend.Controllers
                     p.ImageUrl,
                     p.CreatedDate,
                     p.CategoryId,
-                    CategoryName = p.Category != null ? p.Category.Name : "Chưa có danh mục"
+                    CategoryName = p.Category != null
+                        ? p.Category.Name
+                        : "Chưa có danh mục"
                 })
                 .FirstOrDefaultAsync();
 
@@ -75,15 +84,20 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetByCategory(int categoryId)
         {
             var posts = await _context.Posts
+                .Include(p => p.Category)
                 .Where(p => p.CategoryId == categoryId)
-                .OrderByDescending(p => p.Id)
+                .OrderByDescending(p => p.CreatedDate)
                 .Select(p => new
                 {
                     p.Id,
                     p.Title,
+                    p.Content,
                     p.ImageUrl,
                     p.CreatedDate,
-                    CategoryName = p.Category != null ? p.Category.Name : "Chưa có danh mục"
+                    p.CategoryId,
+                    CategoryName = p.Category != null
+                        ? p.Category.Name
+                        : "Chưa có danh mục"
                 })
                 .ToListAsync();
 

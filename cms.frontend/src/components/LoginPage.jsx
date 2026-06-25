@@ -27,7 +27,11 @@ const LoginPage = ({ onLogin }) => {
 
     return (
         <div className="auth-page">
-            <div className="auth-card">
+            <div className="auth-card auth-login-card">
+                <div className="auth-logo-mini">
+                    QuocBao.<span>Fashion</span>
+                </div>
+
                 <div className="auth-icon login-icon">
                     <i className="fa-solid fa-right-to-bracket"></i>
                 </div>
@@ -35,47 +39,58 @@ const LoginPage = ({ onLogin }) => {
                 <h2>Đăng nhập</h2>
 
                 <p className="auth-subtitle">
-                    Chào mừng bạn quay lại QUOCBAO FASHION
+                    Chào mừng bạn quay lại hệ thống mua sắm thời trang
                 </p>
 
                 {message && (
-                    <div className="alert alert-warning text-start">
-                        {message}
+                    <div className="auth-alert">
+                        <i className="fa-solid fa-circle-exclamation"></i>
+                        <span>{message}</span>
                     </div>
                 )}
 
                 <form onSubmit={handleLogin}>
-                    <div className="mb-3">
-                        <label className="form-label">
+                    <div className="auth-form-group">
+                        <label htmlFor="loginUsername">
                             Tên đăng nhập hoặc Email
                         </label>
 
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Nhập tài khoản hoặc email"
-                            value={username}
-                            onChange={(event) => setUsername(event.target.value)}
-                        />
+                        <div className="auth-input-wrap">
+                            <i className="fa-solid fa-user"></i>
+
+                            <input
+                                id="loginUsername"
+                                name="loginUsername"
+                                type="text"
+                                placeholder="Nhập tài khoản hoặc email"
+                                value={username}
+                                onChange={(event) => setUsername(event.target.value)}
+                            />
+                        </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="form-label">
+                    <div className="auth-form-group">
+                        <label htmlFor="loginPassword">
                             Mật khẩu
                         </label>
 
-                        <input
-                            type="password"
-                            className="form-control"
-                            placeholder="Nhập mật khẩu"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                        />
+                        <div className="auth-input-wrap">
+                            <i className="fa-solid fa-lock"></i>
+
+                            <input
+                                id="loginPassword"
+                                name="loginPassword"
+                                type="password"
+                                placeholder="Nhập mật khẩu"
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
+                            />
+                        </div>
                     </div>
 
-                    <button type="submit" className="btn auth-main-btn w-100">
-                        <i className="fa-solid fa-right-to-bracket me-2"></i>
-                        Đăng nhập
+                    <button type="submit" className="auth-submit-btn">
+                        <i className="fa-solid fa-right-to-bracket"></i>
+                        <span>Đăng nhập</span>
                     </button>
                 </form>
 
@@ -85,8 +100,8 @@ const LoginPage = ({ onLogin }) => {
                 </p>
 
                 <Link to="/" className="auth-back-link">
-                    <i className="fa-solid fa-arrow-left me-1"></i>
-                    Quay về trang chủ
+                    <i className="fa-solid fa-arrow-left"></i>
+                    <span>Quay về trang chủ</span>
                 </Link>
             </div>
         </div>

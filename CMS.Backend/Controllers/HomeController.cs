@@ -5,11 +5,13 @@ Ngày thực hiện: 15/05/2026
 */
 
 using CMS.Data.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly AppDbContext _context;

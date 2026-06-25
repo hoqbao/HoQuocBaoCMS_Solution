@@ -1,113 +1,274 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import orderService from '../services/orderService.js';
 
 const CartPage = () => {
-    const [cart, setCart] = useState([]);
+    const [cartItems, setCartItems] = useState([]);
+
+    const [customerInfo, setCustomerInfo] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        address: ''
+    });
+
+    const [message, setMessage] = useState('');
 
     useEffect(() => {
-        const data = JSON.parse(localStorage.getItem('cart')) || [];
-        setCart(data);
+        const savedCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+        setCartItems(savedCart);
     }, []);
 
-    const handleRemove = (id) => {
-        const newCart = cart.filter(item => Number(item.id) !== Number(id));
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
+    const formatPrice = (price) => {
+        return Number(price || 0).toLocaleString('vi-VN') + ' đ';
     };
 
-    const totalPrice = cart.reduce((sum, item) => {
-        return sum + Number(item.price) * Number(item.quantity);
+    const getImageUrl = (imageUrl) => {
+        if (!imageUrl) {
+            return '/no-image.png';
+        }
+
+        if (imageUrl.startsWith('http')) {
+            return imageUrl;
+        }
+
+        return `https://localhost:7076${imageUrl}`;
+    };
+
+    const updateQuantity = (productId, quantity) => {
+        if (quantity <= 0) {
+            return;
+        }
+
+        const updatedCart = cartItems.map((item) =>
+            item.id === productId
+                ? { ...item, quantity: quantity }
+                : item
+        );
+
+        setCartItems(updatedCart);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    };
+
+    const removeItem = (productId) => {
+        const updatedCart = cartItems.filter((item) => item.id !== productId);
+
+        setCartItems(updatedCart);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    };
+
+    const totalAmount = cartItems.reduce((total, item) => {
+        return total + Number(item.price || 0) * Number(item.quantity || 0);
     }, 0);
 
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+
+        setCustomerInfo({
+            ...customerInfo,
+            [name]: value
+        });
+    };
+
+    const handleOrderSubmit = async (event) => {
+        event.preventDefault();
+
+        setMessage('');
+
+        if (cartItems.length === 0) {
+            setMessage('Giỏ hàng đang trống.');
+            return;
+        }
+
+        if (!customerInfo.fullName.trim()) {
+            setMessage('Vui lòng nhập họ tên.');
+            return;
+        }
+
+        if (!customerInfo.phone.trim()) {
+            setMessage('Vui lòng nhập số điện thoại.');
+            return;
+        }
+
+        if (!customerInfo.address.trim()) {
+            setMessage('Vui lòng nhập địa chỉ giao hàng.');
+            return;
+        }
+
+        const orderData = {
+            fullName: customerInfo.fullName,
+            email: customerInfo.email,
+            phone: customerInfo.phone,
+            address: customerInfo.address,
+            items: cartItems.map((item) => ({
+                productId: item.id,
+                quantity: item.quantity
+            }))
+        };
+
+        console.log('ORDER DATA:', orderData);
+
+        try {
+            const result = await orderService.createOrder(orderData);
+
+            setMessage(result.message || 'Đặt hàng thành công.');
+
+            localStorage.removeItem('cartItems');
+            setCartItems([]);
+
+            setCustomerInfo({
+                fullName: '',
+                email: '',
+                phone: '',
+                address: ''
+            });
+        } catch (error) {
+            console.error('Lỗi đặt hàng:', error);
+            console.error('API response:', error.response?.data);
+
+            const apiMessage =
+                error.response?.data?.innerError ||
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                error.message;
+
+            setMessage(apiMessage || 'Đặt hàng thất bại. Vui lòng kiểm tra lại API.');
+        }
+    };
+
     return (
-        <div className="shopping-page">
-            <div className="shopping-header">
-                <div>
-                    <h3 className="fw-bold mb-1">
-                        <i className="fa-solid fa-cart-shopping text-primary me-2"></i>
-                        Giỏ hàng của bạn
-                    </h3>
-
-                    <p className="text-muted mb-0">
-                        Danh sách sản phẩm đã thêm vào giỏ hàng
-                    </p>
-                </div>
-
-                <Link to="/Home" className="btn btn-outline-secondary">
-                    Tiếp tục mua hàng
-                </Link>
-            </div>
-
-            {cart.length === 0 ? (
-                <div className="empty-shopping-box">
+        <div className="cart-page">
+            <section className="cart-header">
+                <h1>
                     <i className="fa-solid fa-cart-shopping"></i>
-                    <h5>Giỏ hàng đang trống</h5>
-                    <p>Hãy chọn sản phẩm yêu thích và thêm vào giỏ hàng.</p>
+                    Giỏ hàng của bạn
+                </h1>
 
-                    <Link to="/Home" className="btn btn-primary">
-                        Mua sắm ngay
-                    </Link>
+                <p>Kiểm tra sản phẩm và nhập thông tin để đặt hàng.</p>
+            </section>
+
+            {message && (
+                <div className="cart-message">
+                    {message}
                 </div>
-            ) : (
-                <div className="card shopping-card">
-                    <div className="card-body">
-                        {cart.map(item => (
+            )}
+
+            <section className="cart-layout">
+                <div className="cart-items-area">
+                    {cartItems.length === 0 ? (
+                        <div className="cart-empty">
+                            <i className="fa-solid fa-box-open"></i>
+                            <h3>Giỏ hàng đang trống</h3>
+                            <p>Hãy chọn sản phẩm ở trang cửa hàng.</p>
+                        </div>
+                    ) : (
+                        cartItems.map((item) => (
                             <div className="cart-item" key={item.id}>
-                                {item.imageUrl ? (
-                                    <img
-                                        src={`https://localhost:7076${item.imageUrl}`}
-                                        alt={item.name}
-                                        className="cart-item-image"
-                                    />
-                                ) : (
-                                    <div className="cart-item-image d-flex align-items-center justify-content-center text-muted">
-                                        No image
-                                    </div>
-                                )}
+                                <img
+                                    src={getImageUrl(item.imageUrl)}
+                                    alt={item.name}
+                                />
 
                                 <div className="cart-item-info">
-                                    <h5>{item.name}</h5>
-
-                                    <p className="text-muted mb-1">
-                                        {item.categoryProductName}
-                                    </p>
-
-                                    <p className="mb-0">
-                                        Số lượng: <strong>{item.quantity}</strong>
-                                    </p>
+                                    <h4>{item.name}</h4>
+                                    <p>{formatPrice(item.price)}</p>
                                 </div>
 
-                                <div className="cart-item-price">
-                                    {new Intl.NumberFormat('vi-VN', {
-                                        style: 'currency',
-                                        currency: 'VND'
-                                    }).format(Number(item.price) * Number(item.quantity))}
+                                <div className="cart-quantity">
+                                    <button
+                                        type="button"
+                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    >
+                                        -
+                                    </button>
+
+                                    <span>{item.quantity}</span>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+
+                                <div className="cart-item-total">
+                                    {formatPrice(item.price * item.quantity)}
                                 </div>
 
                                 <button
-                                    className="btn btn-outline-danger btn-sm"
-                                    onClick={() => handleRemove(item.id)}
+                                    type="button"
+                                    className="cart-remove-btn"
+                                    onClick={() => removeItem(item.id)}
                                 >
-                                    Xóa
+                                    <i className="fa-solid fa-trash"></i>
                                 </button>
                             </div>
-                        ))}
-
-                        <hr />
-
-                        <div className="cart-total">
-                            <span>Tổng tiền:</span>
-
-                            <strong>
-                                {new Intl.NumberFormat('vi-VN', {
-                                    style: 'currency',
-                                    currency: 'VND'
-                                }).format(totalPrice)}
-                            </strong>
-                        </div>
-                    </div>
+                        ))
+                    )}
                 </div>
-            )}
+
+                <form className="checkout-box" onSubmit={handleOrderSubmit}>
+                    <h3>Thông tin đặt hàng</h3>
+
+                    <div className="checkout-form-group">
+                        <label htmlFor="fullName">Họ tên</label>
+                        <input
+                            id="fullName"
+                            name="fullName"
+                            type="text"
+                            value={customerInfo.fullName}
+                            onChange={handleInputChange}
+                            placeholder="Nhập họ tên"
+                        />
+                    </div>
+
+                    <div className="checkout-form-group">
+                        <label htmlFor="email">Email</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={customerInfo.email}
+                            onChange={handleInputChange}
+                            placeholder="Nhập email"
+                        />
+                    </div>
+
+                    <div className="checkout-form-group">
+                        <label htmlFor="phone">Số điện thoại</label>
+                        <input
+                            id="phone"
+                            name="phone"
+                            type="text"
+                            value={customerInfo.phone}
+                            onChange={handleInputChange}
+                            placeholder="Nhập số điện thoại"
+                        />
+                    </div>
+
+                    <div className="checkout-form-group">
+                        <label htmlFor="address">Địa chỉ giao hàng</label>
+                        <textarea
+                            id="address"
+                            name="address"
+                            value={customerInfo.address}
+                            onChange={handleInputChange}
+                            placeholder="Nhập địa chỉ giao hàng"
+                            rows="3"
+                        />
+                    </div>
+
+                    <div className="checkout-total">
+                        <span>Tổng tiền:</span>
+                        <strong>{formatPrice(totalAmount)}</strong>
+                    </div>
+
+                    <button type="submit" className="checkout-submit-btn">
+                        <i className="fa-solid fa-paper-plane"></i>
+                        Đặt hàng
+                    </button>
+                </form>
+            </section>
         </div>
     );
 };

@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import productService from '../services/productService';
+import productService from '../services/productService.js';
 
 const ProductList = ({
     selectedCategory = 'Tất cả sản phẩm',
@@ -9,148 +9,226 @@ const ProductList = ({
 }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-
-                const data = await productService.getAllProducts();
-                setProducts(data || []);
-            } catch (error) {
-                console.error('Lỗi khi tải sản phẩm:', error);
-                setProducts([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProducts();
+        loadProducts();
     }, []);
+
+    const loadProducts = async () => {
+        try {
+            setLoading(true);
+            setErrorMessage('');
+
+            const data = await productService.getAllProducts();
+
+            setProducts(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách sản phẩm:', error);
+            setErrorMessage('Không thể tải danh sách sản phẩm. Vui lòng kiểm tra API.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatPrice = (price) => {
+        if (price === null || price === undefined) {
+            return 'Liên hệ';
+        }
+
+        return Number(price).toLocaleString('vi-VN') + ' đ';
+    };
 
     const normalizeText = (text) => {
         return (text || '')
             .toString()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
-            .replace(/đ/g, 'd')
-            .replace(/Đ/g, 'D')
-            .trim()
-            .toLowerCase();
+            .toLowerCase()
+            .trim();
     };
 
-    const filterByPrice = (product) => {
-        const price = Number(product.price);
-
-        switch (selectedPriceRange) {
-            case 'under500':
-                return price < 500000;
-
-            case '500to1000':
-                return price >= 500000 && price <= 1000000;
-
-            case 'over1000':
-                return price > 1000000;
-
-            default:
-                return true;
+    const isMatchCategory = (product) => {
+        if (selectedCategory === 'Tất cả sản phẩm') {
+            return true;
         }
+
+        return normalizeText(product.categoryProductName) === normalizeText(selectedCategory);
     };
 
-    const normalizedSearchTerm = normalizeText(searchTerm);
+    const isMatchPrice = (product) => {
+        const price = Number(product.price || 0);
 
-    const filteredProducts = products.filter((item) => {
-        const isSameCategory =
-            selectedCategory === 'Tất cả sản phẩm' ||
-            normalizeText(item.categoryProductName) ===
-            normalizeText(selectedCategory);
+        if (selectedPriceRange === 'all') {
+            return true;
+        }
 
-        const isSamePriceRange = filterByPrice(item);
+        if (selectedPriceRange === 'under500') {
+            return price < 500000;
+        }
 
-        const isSearchMatched =
-            !normalizedSearchTerm ||
-            normalizeText(item.name).includes(normalizedSearchTerm) ||
-            normalizeText(item.description).includes(normalizedSearchTerm) ||
-            normalizeText(item.categoryProductName).includes(normalizedSearchTerm);
+        if (selectedPriceRange === '500to1000') {
+            return price >= 500000 && price <= 1000000;
+        }
 
-        return isSameCategory && isSamePriceRange && isSearchMatched;
+        if (selectedPriceRange === 'over1000') {
+            return price > 1000000;
+        }
+
+        return true;
+    };
+
+    const isMatchSearch = (product) => {
+        if (!searchTerm) {
+            return true;
+        }
+
+        const keyword = normalizeText(searchTerm);
+
+        const productName = normalizeText(product.name);
+        const productDescription = normalizeText(product.description);
+        const categoryName = normalizeText(product.categoryProductName);
+
+        return (
+            productName.includes(keyword) ||
+            productDescription.includes(keyword) ||
+            categoryName.includes(keyword)
+        );
+    };
+
+    const addToCart = (product) => {
+        const currentCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+        const existingItem = currentCart.find((item) => item.id === product.id);
+
+        let updatedCart = [];
+
+        if (existingItem) {
+            updatedCart = currentCart.map((item) =>
+                item.id === product.id
+                    ? {
+                        ...item,
+                        quantity: Number(item.quantity || 0) + 1
+                    }
+                    : item
+            );
+        } else {
+            updatedCart = [
+                ...currentCart,
+                {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.imageUrl,
+                    categoryProductName: product.categoryProductName,
+                    stockQuantity: product.stockQuantity,
+                    quantity: 1
+                }
+            ];
+        }
+
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
+        alert('Đã thêm sản phẩm vào giỏ hàng!');
+    };
+
+    const filteredProducts = products.filter((product) => {
+        return (
+            isMatchCategory(product) &&
+            isMatchPrice(product) &&
+            isMatchSearch(product)
+        );
     });
 
     if (loading) {
         return (
-            <div className="no-filter-product">
-                <div
-                    className="spinner-border text-primary mb-3"
-                    role="status"
-                ></div>
+            <div className="product-loading">
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                <span>Đang tải sản phẩm...</span>
+            </div>
+        );
+    }
 
-                <h5>Đang tải sản phẩm...</h5>
+    if (errorMessage) {
+        return (
+            <div className="product-empty">
+                <i className="fa-solid fa-triangle-exclamation"></i>
+                <h4>{errorMessage}</h4>
+                <p>Hãy mở thử API: https://localhost:7076/api/Products</p>
+            </div>
+        );
+    }
+
+    if (filteredProducts.length === 0) {
+        return (
+            <div className="product-empty">
+                <i className="fa-solid fa-box-open"></i>
+                <h4>Không tìm thấy sản phẩm phù hợp</h4>
+                <p>Vui lòng thử danh mục, khoảng giá hoặc từ khóa khác.</p>
             </div>
         );
     }
 
     return (
-        <div className="product-shop-grid">
-            {filteredProducts.length === 0 ? (
-                <div className="no-filter-product">
-                    <i className="fa-solid fa-box-open"></i>
+        <div className="product-grid">
+            {filteredProducts.map((product) => {
+                const imageUrl = product.imageUrl
+                    ? `https://localhost:7076${product.imageUrl}`
+                    : '/no-image.png';
 
-                    <h5>Không tìm thấy sản phẩm phù hợp</h5>
+                return (
+                    <div className="product-card" key={product.id}>
+                        <div className="product-image-wrap">
+                            <img
+                                src={imageUrl}
+                                alt={product.name}
+                                className="product-image"
+                            />
 
-                    <p>
-                        Hãy thử tìm từ khóa khác, chọn danh mục khác hoặc thay đổi khoảng giá.
-                    </p>
-                </div>
-            ) : (
-                filteredProducts.map((item) => (
-                    <div className="shop-product-card" key={item.id}>
-                        <div className="product-badge">
-                            Bán chạy
-                        </div>
-
-                        <div className="product-img-box">
-                            {item.imageUrl ? (
-                                <img
-                                    src={`https://localhost:7076${item.imageUrl}`}
-                                    alt={item.name}
-                                />
-                            ) : (
-                                <div className="no-product-img">
-                                    Chưa có ảnh
-                                </div>
-                            )}
+                            <span className="product-category-badge">
+                                {product.categoryProductName || 'Chưa có danh mục'}
+                            </span>
                         </div>
 
                         <div className="product-card-body">
-                            <h5 title={item.name}>
-                                {item.name}
-                            </h5>
+                            <h4>{product.name}</h4>
 
-                            <p className="product-price">
-                                {new Intl.NumberFormat('vi-VN').format(item.price)} đ
+                            <p className="product-description">
+                                {product.description || 'Sản phẩm thời trang cao cấp'}
                             </p>
 
-                            <div className="product-card-actions">
+                            <div className="product-meta">
+                                <span className="product-price">
+                                    {formatPrice(product.price)}
+                                </span>
+
+                                <span className="product-stock">
+                                    Còn: {product.stockQuantity ?? 0}
+                                </span>
+                            </div>
+
+                            <div className="product-actions">
                                 <Link
-                                    to={`/product/${item.id}`}
-                                    className="detail-btn"
+                                    to={`/product/${product.id}`}
+                                    className="product-detail-btn"
                                 >
-                                    <i className="fa-solid fa-eye me-1"></i>
-                                    Chi tiết
+                                    <i className="fa-solid fa-eye"></i>
+                                    <span>Xem chi tiết</span>
                                 </Link>
 
-                                <Link
-                                    to={`/product/${item.id}`}
-                                    className="buy-btn"
+                                <button
+                                    type="button"
+                                    className="product-cart-btn"
+                                    onClick={() => addToCart(product)}
+                                    title="Thêm vào giỏ hàng"
                                 >
-                                    <i className="fa-solid fa-cart-shopping me-1"></i>
-                                    Mua ngay
-                                </Link>
+                                    <i className="fa-solid fa-cart-plus"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                ))
-            )}
+                );
+            })}
         </div>
     );
 };

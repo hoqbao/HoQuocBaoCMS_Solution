@@ -12,18 +12,12 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Dashboard">
                     CMS.Backend
                 </a>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">
-                                Home
-                            </a>
-                        </li>
-
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Home" asp-action="Dashboard">
                                 Admin
@@ -43,8 +37,36 @@
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Product" asp-action="Index">
+                                Sản phẩm
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="CategoryProduct" asp-action="Index">
+                                Danh mục sản phẩm
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="User" asp-action="Index">
                                 Thành viên
+                            </a>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <span class="nav-link text-primary fw-bold">
+                                Xin chào, @User.FindFirst("FullName")?.Value
+                            </span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-danger fw-bold"
+                               asp-controller="Account"
+                               asp-action="Logout">
+                                Đăng xuất
                             </a>
                         </li>
                     </ul>

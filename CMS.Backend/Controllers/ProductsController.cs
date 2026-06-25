@@ -5,6 +5,7 @@ Ngày thực hiện: 5/06/2026
 */
 
 using CMS.Data.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace CMS.Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -21,12 +23,12 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Products
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var products = await _context.Products
-                .OrderByDescending(p => p.Id)
+                .Include(p => p.CategoryProduct)
+                .OrderBy(p => p.Id)
                 .Select(p => new
                 {
                     p.Id,
@@ -45,11 +47,11 @@ namespace CMS.Backend.Controllers
             return Ok(products);
         }
 
-        // GET: api/Products/1
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetail(int id)
         {
             var product = await _context.Products
+                .Include(p => p.CategoryProduct)
                 .Where(p => p.Id == id)
                 .Select(p => new
                 {
@@ -68,35 +70,10 @@ namespace CMS.Backend.Controllers
 
             if (product == null)
             {
-                return NotFound(new
-                {
-                    message = "Không tìm thấy sản phẩm này trong hệ thống"
-                });
+                return NotFound();
             }
 
             return Ok(product);
-        }
-
-        // GET: api/Products/categoryproduct/1
-        [HttpGet("categoryproduct/{categoryProductId}")]
-        public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
-        {
-            var products = await _context.Products
-                .Where(p => p.CategoryProductId == categoryProductId)
-                .OrderByDescending(p => p.Id)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.StockQuantity,
-                    p.ImageUrl,
-                    p.CategoryProductId
-                })
-                .ToListAsync();
-
-            return Ok(products);
         }
     }
 }

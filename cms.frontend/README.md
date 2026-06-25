@@ -1,275 +1,70 @@
-﻿# HoQuocBaoCMS_Solution
-
-## 1. Giới thiệu đề tài
-
-Đây là đồ án môn học Chuyên đề ASP.NET.
-Đề tài xây dựng website bán hàng thời trang **QuocBao Fashion** sử dụng ASP.NET Core, SQL Server và ReactJS.
-
-Hệ thống gồm 2 phần chính:
-
-* **Backend**: ASP.NET Core MVC + Web API dùng để quản trị dữ liệu và cung cấp API cho frontend.
-* **Frontend**: ReactJS client site dùng để hiển thị giao diện bán hàng cho khách hàng.
-
-## 2. Cấu trúc Solution
-
-Solution được chia theo mô hình 3 tầng:
-
-```text
-HoQuocBaoCMS_Solution
-│
-├── CMS.Data
-│   ├── Entities
-│   ├── AppDbContext.cs
-│   └── Migrations
-│
-├── CMS.Backend
-│   ├── Controllers
-│   ├── Views
-│   ├── wwwroot
-│   ├── Program.cs
-│   └── appsettings.json
-│
-└── cms.frontend
-    ├── src
-    ├── public
-    ├── package.json
-    └── README.md
-```
-
-## 3. Công nghệ sử dụng
-
-* ASP.NET Core MVC
-* ASP.NET Core Web API
-* Entity Framework Core
-* SQL Server
-* ReactJS
-* React Router DOM
-* Axios
-* Bootstrap
-* Font Awesome
-* CKEditor
-
-## 4. Các chức năng chính
-
-### 4.1. Backend Admin
-
-* Đăng nhập quản trị
-* Đăng xuất
-* Quản lý danh mục bài viết
-* Quản lý bài viết
-* Quản lý người dùng
-* Quản lý danh mục sản phẩm
-* Quản lý sản phẩm
-* Quản lý khách hàng
-* Quản lý đơn hàng
-* Quản lý chi tiết đơn hàng
-* Upload hình ảnh
-* Soạn thảo nội dung bài viết bằng CKEditor
-* Cung cấp Web API cho ReactJS
+﻿# Getting Started with Create React App
 
-### 4.2. Frontend ReactJS
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-* Trang chủ bán hàng
-* Banner slide
-* Hiển thị danh sách sản phẩm
-* Lọc sản phẩm theo danh mục
-* Lọc sản phẩm theo khoảng giá
-* Tìm kiếm sản phẩm
-* Trang cửa hàng
-* Trang chi tiết sản phẩm
-* Giỏ hàng
-* Trang đăng nhập
-* Trang đăng ký
-* Trang tin tức/blog
-* Trang chi tiết bài viết
-* Trang về chúng tôi
+## Available Scripts
 
-## 5. Cách chạy Backend bằng Visual Studio
+In the project directory, you can run:
 
-### Bước 1: Mở Solution
+### `npm start`
 
-Mở file solution bằng Visual Studio:
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-```text
-HoQuocBaoCMS_Solution.sln
-```
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-### Bước 2: Chọn project khởi chạy
+### `npm test`
 
-Trong Visual Studio, chọn project:
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-```text
-CMS.Backend
-```
+### `npm run build`
 
-Sau đó chọn:
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-```text
-Set as Startup Project
-```
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-### Bước 3: Kiểm tra chuỗi kết nối SQL Server
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-Mở file:
+### `npm run eject`
 
-```text
-CMS.Backend/appsettings.json
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-Kiểm tra phần `ConnectionStrings`.
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Ví dụ:
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=HoQuocBaoCMS_DB;Trusted_Connection=True;TrustServerCertificate=True;"
-  }
-}
-```
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-Nếu SQL Server của máy khác tên server, cần sửa lại `Server`.
+## Learn More
 
-Ví dụ:
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-```text
-Server=localhost
-Server=.
-Server=DESKTOP-ABC\\SQLEXPRESS
-```
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Bước 4: Chạy Migration tạo Database
+### Code Splitting
 
-Mở Package Manager Console trong Visual Studio:
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-```text
-Tools → NuGet Package Manager → Package Manager Console
-```
+### Analyzing the Bundle Size
 
-Chọn Default project là:
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-```text
-CMS.Data
-```
+### Making a Progressive Web App
 
-Sau đó chạy lệnh:
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-```powershell
-Update-Database
-```
+### Advanced Configuration
 
-Lệnh này sẽ tạo database và các bảng dữ liệu trong SQL Server.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Bước 5: Chạy Backend
+### Deployment
 
-Nhấn:
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-```text
-F5
-```
+### `npm run build` fails to minify
 
-hoặc bấm nút Run trong Visual Studio.
-
-Backend sẽ chạy tại địa chỉ:
-
-```text
-https://localhost:7076
-```
-
-Swagger API có thể mở tại:
-
-```text
-https://localhost:7076/swagger
-```
-
-## 6. Cách chạy Frontend ReactJS
-
-### Bước 1: Mở terminal tại thư mục gốc project
-
-```bash
-cd D:\CSharp\HoQuocBaoCMS_Solution
-```
-
-### Bước 2: Di chuyển vào thư mục frontend
-
-```bash
-cd cms.frontend
-```
-
-### Bước 3: Cài đặt thư viện
-
-```bash
-npm install
-```
-
-### Bước 4: Chạy frontend
-
-```bash
-npm start
-```
-
-Frontend sẽ chạy tại địa chỉ:
-
-```text
-http://localhost:3000
-```
-
-## 7. Lưu ý khi chạy hệ thống
-
-Backend cần chạy trước bằng Visual Studio:
-
-```text
-https://localhost:7076
-```
-
-Frontend chạy sau bằng lệnh:
-
-```bash
-npm start
-```
-
-Frontend gọi API từ Backend thông qua Axios.
-
-Nếu frontend không tải được dữ liệu, cần kiểm tra:
-
-* Backend đã chạy chưa
-* Port backend có đúng là `7076` không
-* CORS trong `Program.cs` đã cho phép `http://localhost:3000` chưa
-* SQL Server đã có database chưa
-* Dữ liệu sản phẩm, bài viết đã được thêm chưa
-
-## 8. Tài khoản và dữ liệu mẫu
-
-Tài khoản quản trị được tạo trong hệ thống dùng để đăng nhập trang Admin.
-
-Nếu chưa có dữ liệu, có thể thêm dữ liệu từ trang quản trị hoặc thêm trực tiếp trong SQL Server.
-
-Các nhóm dữ liệu chính:
-
-* Category
-* Post
-* User
-* CategoryProduct
-* Product
-* Customer
-* Order
-* OrderDetail
-
-## 9. Git Ignore
-
-Project đã cấu hình `.gitignore` để loại bỏ các thư mục rác và file build không cần thiết khỏi Git:
-
-```text
-node_modules/
-bin/
-obj/
-.vs/
-```
-
-Nhờ đó repository trên GitHub chỉ lưu mã nguồn cần thiết, không đẩy các thư mục build hoặc thư viện cài đặt tạm thời.
-
-## 10. Tác giả
-
-Sinh viên thực hiện: Ho Quoc Bao
-Môn học: Chuyên đề ASP.NET
-Đề tài: Xây dựng website bán hàng thời trang QuocBao Fashion sử dụng ASP.NET Core Web API và ReactJS
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)

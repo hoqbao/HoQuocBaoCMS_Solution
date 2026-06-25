@@ -1,15 +1,9 @@
-import axiosClient from '../api/axiosClient';
+import axiosClient from './axiosClient';
 
 const productService = {
-    getAllProducts: () => {
-        const url = '/Products';
-        return axiosClient.get(url);
-    },
+    getAllProducts: () => axiosClient.get('/Products'),
 
-    getProductById: (id) => {
-        const url = `/Products/${id}`;
-        return axiosClient.get(url);
-    }
+    getProductById: (id) => axiosClient.get(`/Products/${id}`)
 };
 
 export default productService;

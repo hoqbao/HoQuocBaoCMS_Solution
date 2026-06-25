@@ -5,6 +5,7 @@ Ngày thực hiện: 15/05/2026
 */
 
 using CMS.Data.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace CMS.Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly AppDbContext _context;
