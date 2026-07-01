@@ -24,5 +24,12 @@ namespace CMS.Data.Data
         public DbSet<OrderDetail> OrderDetails { get; set; }
 
         public DbSet<CategoryProduct> CategoriesProducts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<CategoryProduct>().ToTable("CategoriesProducts");
+        }
     }
 }

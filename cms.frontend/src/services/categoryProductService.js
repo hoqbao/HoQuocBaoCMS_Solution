@@ -1,10 +1,7 @@
-import axiosClient from '../api/axiosClient';
+import axiosClient from './axiosClient';
 
 const categoryProductService = {
-    getAllCategoryProducts: () => {
-        const url = '/CategoriesProducts';
-        return axiosClient.get(url);
-    }
+    getAll: () => axiosClient.get('/CategoryProducts')
 };
 
 export default categoryProductService;

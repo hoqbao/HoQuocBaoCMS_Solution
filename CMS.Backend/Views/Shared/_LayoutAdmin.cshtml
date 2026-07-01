@@ -226,8 +226,11 @@
                         <span class="user-pill">
                             <i class="bi bi-person-circle"></i>
                             @User.FindFirst("FullName")?.Value
-                        </span>
 
+                            <span class="badge bg-primary ms-2">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                            </span>
+                        </span>
                         <a asp-controller="Account"
                            asp-action="Logout"
                            class="btn btn-outline-danger btn-sm btn-logout">

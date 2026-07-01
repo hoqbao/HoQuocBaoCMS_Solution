@@ -210,6 +210,16 @@ namespace CMS.Backend.Controllers
                         });
                     }
 
+                    if (product.StockQuantity < item.Quantity)
+                    {
+                        await transaction.RollbackAsync();
+
+                        return BadRequest(new
+                        {
+                            message = $"Sản phẩm '{product.Name}' không đủ số lượng trong kho."
+                        });
+                    }
+
                     var unitPrice = product.Price;
                     var lineTotal = unitPrice * item.Quantity;
 
@@ -224,6 +234,10 @@ namespace CMS.Backend.Controllers
                     };
 
                     _context.OrderDetails.Add(orderDetail);
+
+                    // Trừ tồn kho sau khi đặt hàng
+                    product.StockQuantity -= item.Quantity;
+                    _context.Products.Update(product);
                 }
 
                 await _context.SaveChangesAsync();

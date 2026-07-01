@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState } from 'react';
 import orderService from '../services/orderService.js';
+import { IMAGE_BASE_URL } from '../config.js';
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -31,7 +32,7 @@ const CartPage = () => {
             return imageUrl;
         }
 
-        return `https://localhost:7076${imageUrl}`;
+        return `${IMAGE_BASE_URL}${imageUrl}`;
     };
 
     const updateQuantity = (productId, quantity) => {
@@ -47,6 +48,8 @@ const CartPage = () => {
 
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
+        window.dispatchEvent(new Event('cartUpdated'));
     };
 
     const removeItem = (productId) => {
@@ -54,6 +57,8 @@ const CartPage = () => {
 
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
+        window.dispatchEvent(new Event('cartUpdated'));
     };
 
     const totalAmount = cartItems.reduce((total, item) => {
@@ -114,6 +119,9 @@ const CartPage = () => {
 
             localStorage.removeItem('cartItems');
             setCartItems([]);
+
+            // Báo cho Header cập nhật lại số lượng giỏ hàng
+            window.dispatchEvent(new Event('cartUpdated'));
 
             setCustomerInfo({
                 fullName: '',

@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import productService from '../services/productService.js';
+import { IMAGE_BASE_URL } from '../config.js';
 
 const ProductList = ({
     selectedCategory = 'Tất cả sản phẩm',
@@ -79,24 +80,29 @@ const ProductList = ({
     };
 
     const isMatchSearch = (product) => {
-        if (!searchTerm) {
+        const keyword = normalizeText(searchTerm);
+
+        if (!keyword) {
             return true;
         }
 
-        const keyword = normalizeText(searchTerm);
+        const searchableText = normalizeText(`
+            ${product.name || ''}
+            ${product.description || ''}
+            ${product.categoryProductName || ''}
+        `);
 
-        const productName = normalizeText(product.name);
-        const productDescription = normalizeText(product.description);
-        const categoryName = normalizeText(product.categoryProductName);
-
-        return (
-            productName.includes(keyword) ||
-            productDescription.includes(keyword) ||
-            categoryName.includes(keyword)
-        );
+        return searchableText.includes(keyword);
     };
 
     const addToCart = (product) => {
+        const stockQuantity = Number(product.stockQuantity || 0);
+
+        if (stockQuantity <= 0) {
+            alert('Sản phẩm đã hết hàng!');
+            return;
+        }
+
         const currentCart = JSON.parse(localStorage.getItem('cartItems')) || [];
 
         const existingItem = currentCart.find((item) => item.id === product.id);
@@ -104,11 +110,18 @@ const ProductList = ({
         let updatedCart = [];
 
         if (existingItem) {
+            const newQuantity = Number(existingItem.quantity || 0) + 1;
+
+            if (newQuantity > stockQuantity) {
+                alert('Số lượng sản phẩm trong kho không đủ!');
+                return;
+            }
+
             updatedCart = currentCart.map((item) =>
                 item.id === product.id
                     ? {
                         ...item,
-                        quantity: Number(item.quantity || 0) + 1
+                        quantity: newQuantity
                     }
                     : item
             );
@@ -121,13 +134,16 @@ const ProductList = ({
                     price: product.price,
                     imageUrl: product.imageUrl,
                     categoryProductName: product.categoryProductName,
-                    stockQuantity: product.stockQuantity,
+                    stockQuantity: stockQuantity,
                     quantity: 1
                 }
             ];
         }
 
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
+        // Dòng này dùng để cập nhật badge giỏ hàng trên Header realtime
+        window.dispatchEvent(new Event('cartUpdated'));
 
         alert('Đã thêm sản phẩm vào giỏ hàng!');
     };
@@ -154,7 +170,7 @@ const ProductList = ({
             <div className="product-empty">
                 <i className="fa-solid fa-triangle-exclamation"></i>
                 <h4>{errorMessage}</h4>
-                <p>Hãy mở thử API: https://localhost:7076/api/Products</p>
+                <p>Hãy mở thử API: {process.env.REACT_APP_API_URL}/Products</p>
             </div>
         );
     }
@@ -163,7 +179,7 @@ const ProductList = ({
         return (
             <div className="product-empty">
                 <i className="fa-solid fa-box-open"></i>
-                <h4>Không tìm thấy sản phẩm phù hợp</h4>
+                <h4>Không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn</h4>
                 <p>Vui lòng thử danh mục, khoảng giá hoặc từ khóa khác.</p>
             </div>
         );
@@ -173,7 +189,7 @@ const ProductList = ({
         <div className="product-grid">
             {filteredProducts.map((product) => {
                 const imageUrl = product.imageUrl
-                    ? `https://localhost:7076${product.imageUrl}`
+                    ? `${IMAGE_BASE_URL}${product.imageUrl}`
                     : '/no-image.png';
 
                 return (

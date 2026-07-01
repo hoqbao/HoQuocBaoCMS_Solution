@@ -3014,3 +3014,114 @@ a {
         justify-self: start;
     }
 }
+
+.cart-header-link {
+    position: relative;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background-color: #e03131;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.post-detail-page {
+    max-width: 980px;
+    margin: 34px auto 60px;
+}
+
+.post-detail-image-wrap {
+    width: 100%;
+    max-height: 430px;
+    overflow: hidden;
+    border-radius: 24px;
+    margin-bottom: 24px;
+}
+
+.post-detail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.post-detail-content-box {
+    padding: 34px;
+    border-radius: 24px;
+    background-color: #ffffff;
+    border: 1px solid #e6eef3;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+.post-detail-category {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background-color: #e7f8f3;
+    color: #0ca678;
+    font-weight: 900;
+}
+
+.post-detail-content-box h1 {
+    margin: 0 0 10px;
+    color: #005580;
+    font-size: 34px;
+    font-weight: 900;
+}
+
+.post-detail-date {
+    margin-bottom: 24px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.post-detail-html-content {
+    color: #2f3a45;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+    .post-detail-html-content img {
+        max-width: 100%;
+        display: block;
+        margin: 20px auto;
+        border-radius: 16px;
+    }
+
+    .post-detail-html-content p {
+        margin-bottom: 16px;
+    }
+
+    .post-detail-html-content strong,
+    .post-detail-html-content b {
+        font-weight: 900;
+    }
+
+.post-detail-loading,
+.post-detail-error {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 20px;
+    background-color: #ffffff;
+    text-align: center;
+    color: #005580;
+    font-weight: 900;
+}
+.post-detail-html-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+    border-radius: 16px;
+}

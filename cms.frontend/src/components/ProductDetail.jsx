@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import productService from '../services/productService';
+import { IMAGE_BASE_URL } from '../config.js';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -28,6 +29,18 @@ const ProductDetail = () => {
         fetchProductDetail();
     }, [id]);
 
+    const getImageUrl = (imageUrl) => {
+        if (!imageUrl) {
+            return '';
+        }
+
+        if (imageUrl.startsWith('http')) {
+            return imageUrl;
+        }
+
+        return `${IMAGE_BASE_URL}${imageUrl}`;
+    };
+
     const handleDecreaseQuantity = () => {
         if (quantity > 1) {
             setQuantity(quantity - 1);
@@ -35,48 +48,91 @@ const ProductDetail = () => {
     };
 
     const handleIncreaseQuantity = () => {
-        if (product && quantity < product.stockQuantity) {
-            setQuantity(quantity + 1);
+        if (!product) {
+            return;
         }
+
+        const stockQuantity = Number(product.stockQuantity || 0);
+
+        if (quantity + 1 > stockQuantity) {
+            alert('Số lượng sản phẩm trong kho không đủ!');
+            return;
+        }
+
+        setQuantity(quantity + 1);
     };
 
     const saveProductToCart = () => {
-        if (!product) return false;
-
-        if (product.stockQuantity <= 0) {
-            setMessage('Sản phẩm hiện đã hết hàng.');
+        if (!product) {
+            alert('Không tìm thấy sản phẩm.');
             return false;
         }
 
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const stockQuantity = Number(product.stockQuantity || 0);
+        const buyQuantity = Number(quantity || 1);
 
-        const cartItem = {
-            id: Number(product.id),
-            name: product.name,
-            price: Number(product.price),
-            imageUrl: product.imageUrl || '',
-            stockQuantity: Number(product.stockQuantity),
-            categoryProductName: product.categoryProductName || 'Chưa có danh mục',
-            quantity: Number(quantity)
-        };
-
-        const existingItem = cart.find(item => Number(item.id) === Number(product.id));
-
-        if (existingItem) {
-            existingItem.quantity = Number(existingItem.quantity) + Number(quantity);
-
-            if (existingItem.quantity > Number(product.stockQuantity)) {
-                existingItem.quantity = Number(product.stockQuantity);
-            }
-        } else {
-            cart.push(cartItem);
+        if (stockQuantity <= 0) {
+            alert('Sản phẩm đã hết hàng!');
+            return false;
         }
 
-        localStorage.setItem('cart', JSON.stringify(cart));
+        if (buyQuantity <= 0) {
+            alert('Số lượng mua phải lớn hơn 0!');
+            return false;
+        }
+
+        if (buyQuantity > stockQuantity) {
+            alert('Số lượng sản phẩm trong kho không đủ!');
+            return false;
+        }
+
+        const currentCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+        const existingItem = currentCart.find(
+            (item) => Number(item.id) === Number(product.id)
+        );
+
+        let updatedCart = [];
+
+        if (existingItem) {
+            const newQuantity = Number(existingItem.quantity || 0) + buyQuantity;
+
+            if (newQuantity > stockQuantity) {
+                alert('Số lượng sản phẩm trong kho không đủ!');
+                return false;
+            }
+
+            updatedCart = currentCart.map((item) =>
+                Number(item.id) === Number(product.id)
+                    ? {
+                        ...item,
+                        quantity: newQuantity
+                    }
+                    : item
+            );
+        } else {
+            updatedCart = [
+                ...currentCart,
+                {
+                    id: Number(product.id),
+                    name: product.name,
+                    price: Number(product.price),
+                    imageUrl: product.imageUrl || '',
+                    stockQuantity: stockQuantity,
+                    categoryProductName: product.categoryProductName || 'Chưa có danh mục',
+                    quantity: buyQuantity
+                }
+            ];
+        }
+
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
+        window.dispatchEvent(new Event('cartUpdated'));
+
         return true;
     };
 
-    const handleAddToCart = () => {
+    const addToCart = () => {
         const success = saveProductToCart();
 
         if (success) {
@@ -112,7 +168,7 @@ const ProductDetail = () => {
     return (
         <div className="product-detail-page">
             <div className="mb-3">
-                <Link to="/Home" className="btn btn-outline-secondary">
+                <Link to="/" className="btn btn-outline-secondary">
                     <i className="fa-solid fa-arrow-left me-2"></i>
                     Quay lại
                 </Link>
@@ -141,7 +197,7 @@ const ProductDetail = () => {
                         <div className="product-detail-image-area">
                             {product.imageUrl ? (
                                 <img
-                                    src={`https://localhost:7076${product.imageUrl}`}
+                                    src={getImageUrl(product.imageUrl)}
                                     alt={product.name}
                                     className="product-detail-main-image"
                                 />
@@ -231,18 +287,20 @@ const ProductDetail = () => {
 
                             <div className="product-detail-actions-new mt-4">
                                 <button
+                                    type="button"
                                     className="btn btn-primary btn-lg"
-                                    onClick={handleAddToCart}
-                                    disabled={product.stockQuantity <= 0}
+                                    onClick={addToCart}
+                                    disabled={Number(product.stockQuantity || 0) <= 0}
                                 >
                                     <i className="fa-solid fa-cart-plus me-2"></i>
                                     Thêm vào giỏ hàng
                                 </button>
 
                                 <button
+                                    type="button"
                                     className="btn btn-success btn-lg"
                                     onClick={handleBuyNow}
-                                    disabled={product.stockQuantity <= 0}
+                                    disabled={Number(product.stockQuantity || 0) <= 0}
                                 >
                                     <i className="fa-solid fa-bag-shopping me-2"></i>
                                     Mua ngay

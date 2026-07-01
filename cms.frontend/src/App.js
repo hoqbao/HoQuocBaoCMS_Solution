@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     BrowserRouter,
     Routes,
@@ -20,17 +20,64 @@ import StorePage from './components/StorePage.jsx';
 import BlogPage from './components/BlogPage.jsx';
 import AboutPage from './components/AboutPage.jsx';
 
+import categoryProductService from './services/categoryProductService.js';
+
 import './App.css';
 
 function HomePage() {
     const [selectedCategory, setSelectedCategory] = useState('Tất cả sản phẩm');
+    const [categories, setCategories] = useState(['Tất cả sản phẩm']);
 
-    const categories = [
-        'Tất cả sản phẩm',
-        'Đầm dạ hội',
-        'Đồ nam công sở',
-        'Phụ kiện nam'
-    ];
+    useEffect(() => {
+        loadCategories();
+    }, []);
+
+    const loadCategories = async () => {
+        try {
+            const data = await categoryProductService.getAll();
+
+            const categoryNames = Array.isArray(data)
+                ? data.map((item) => item.name)
+                : [];
+
+            setCategories(['Tất cả sản phẩm', ...categoryNames]);
+        } catch (error) {
+            console.error('Lỗi khi tải danh mục sản phẩm:', error);
+
+            setCategories([
+                'Tất cả sản phẩm',
+                'Đầm dạ hội',
+                'Đồ nam công sở',
+                'Phụ kiện nam'
+            ]);
+        }
+    };
+
+    const getCategoryIcon = (category) => {
+        const text = (category || '').toLowerCase();
+
+        if (category === 'Tất cả sản phẩm') {
+            return 'fa-solid fa-border-all me-1';
+        }
+
+        if (text.includes('đầm') || text.includes('dạ hội')) {
+            return 'fa-solid fa-wand-magic-sparkles me-1';
+        }
+
+        if (text.includes('nam') || text.includes('công sở')) {
+            return 'fa-solid fa-user-tie me-1';
+        }
+
+        if (text.includes('phụ kiện')) {
+            return 'fa-solid fa-gem me-1';
+        }
+
+        if (text.includes('biển')) {
+            return 'fa-solid fa-umbrella-beach me-1';
+        }
+
+        return 'fa-solid fa-shirt me-1';
+    };
 
     return (
         <>
@@ -47,22 +94,7 @@ function HomePage() {
                         }
                         onClick={() => setSelectedCategory(category)}
                     >
-                        {category === 'Tất cả sản phẩm' && (
-                            <i className="fa-solid fa-border-all me-1"></i>
-                        )}
-
-                        {category === 'Xu hướng đầm dạ hội' && (
-                            <i className="fa-solid fa-wand-magic-sparkles me-1"></i>
-                        )}
-
-                        {category === 'Đồ nam công sở' && (
-                            <i className="fa-solid fa-user-tie me-1"></i>
-                        )}
-
-                        {category === 'Phụ kiện nam' && (
-                            <i className="fa-solid fa-gem me-1"></i>
-                        )}
-
+                        <i className={getCategoryIcon(category)}></i>
                         {category}
                     </button>
                 ))}
@@ -140,7 +172,7 @@ function HeaderSearch() {
     );
 }
 
-function ShopLayout({ children, currentUser, handleLogout }) {
+function ShopLayout({ children, currentUser, handleLogout, cartCount }) {
     return (
         <div className="shop-page">
             <div className="top-strip">
@@ -172,7 +204,8 @@ function ShopLayout({ children, currentUser, handleLogout }) {
                                 >
                                     <i className="fa-solid fa-right-from-bracket"></i>
                                     <span>Đăng xuất</span>
-                                </button>                            </>
+                                </button>
+                            </>
                         ) : (
                             <>
                                 <Link to="/login" className="top-auth-link login-link">
@@ -200,9 +233,15 @@ function ShopLayout({ children, currentUser, handleLogout }) {
                 <HeaderSearch />
 
                 <div className="shop-header-actions">
-                    <Link to="/cart" className="mini-action-btn cart-mini-btn">
+                    <Link to="/cart" className="mini-action-btn cart-mini-btn cart-header-link">
                         <i className="fa-solid fa-cart-shopping"></i>
                         <span>Giỏ hàng</span>
+
+                        {cartCount > 0 && (
+                            <span className="cart-badge">
+                                {cartCount}
+                            </span>
+                        )}
                     </Link>
                 </div>
             </header>
@@ -270,6 +309,30 @@ function App() {
         savedUser ? JSON.parse(savedUser) : null
     );
 
+    const [cartCount, setCartCount] = useState(0);
+
+    useEffect(() => {
+        updateCartCount();
+
+        window.addEventListener('cartUpdated', updateCartCount);
+        window.addEventListener('storage', updateCartCount);
+
+        return () => {
+            window.removeEventListener('cartUpdated', updateCartCount);
+            window.removeEventListener('storage', updateCartCount);
+        };
+    }, []);
+
+    const updateCartCount = () => {
+        const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+        const totalQuantity = cartItems.reduce((total, item) => {
+            return total + Number(item.quantity || 0);
+        }, 0);
+
+        setCartCount(totalQuantity);
+    };
+
     const handleLogin = (user) => {
         localStorage.setItem('authUser', JSON.stringify(user));
         setCurrentUser(user);
@@ -289,8 +352,13 @@ function App() {
 
         window.location.href = '/login';
     };
+
     const withShopLayout = (page) => (
-        <ShopLayout currentUser={currentUser} handleLogout={handleLogout}>
+        <ShopLayout
+            currentUser={currentUser}
+            handleLogout={handleLogout}
+            cartCount={cartCount}
+        >
             {page}
         </ShopLayout>
     );
