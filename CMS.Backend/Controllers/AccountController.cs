@@ -82,6 +82,62 @@ namespace CMS.Backend.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgotPassword(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                ViewBag.Error = "Vui lòng nhập tên đăng nhập!";
+                return View();
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Username == username.Trim());
+
+            if (user == null)
+            {
+                ViewBag.Error = "Không tìm thấy tài khoản này!";
+                return View();
+            }
+
+            string temporaryPassword = GenerateTemporaryPassword();
+
+            user.PasswordHash = PasswordHelper.HashPassword(temporaryPassword);
+
+            _context.Users.Update(user);
+            _context.SaveChanges();
+
+            ViewBag.Success = "Đặt lại mật khẩu thành công.";
+            ViewBag.TemporaryPassword = temporaryPassword;
+            ViewBag.Username = user.Username;
+
+            return View();
+        }
+
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+            var random = new Random();
+
+            var passwordChars = new char[8];
+
+            for (int i = 0; i < passwordChars.Length; i++)
+            {
+                passwordChars[i] = chars[random.Next(chars.Length)];
+            }
+
+            return new string(passwordChars);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Session.Clear();

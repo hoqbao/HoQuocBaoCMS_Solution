@@ -1,195 +1,238 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import productService from '../services/productService.js';
+import ProductList from './ProductList.jsx';
+import categoryProductService from '../services/categoryProductService.js';
 
-const ProductList = ({
-    selectedCategory = 'Tất cả sản phẩm',
-    selectedPriceRange = 'all',
-    searchTerm = ''
-}) => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState('');
+const StorePage = () => {
+    const [searchParams] = useSearchParams();
+    const searchTerm = searchParams.get('search') || '';
+
+    const [selectedCategory, setSelectedCategory] = useState('Tất cả sản phẩm');
+    const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        loadProducts();
+        loadCategories();
     }, []);
 
-    const loadProducts = async () => {
+    const loadCategories = async () => {
         try {
-            setLoading(true);
-            setErrorMessage('');
+            const data = await categoryProductService.getAll();
 
-            const data = await productService.getAllProducts();
+            const apiCategories = Array.isArray(data)
+                ? data.map((item) => ({
+                    name: item.name,
+                    icon: getCategoryIcon(item.name)
+                }))
+                : [];
 
-            setProducts(Array.isArray(data) ? data : []);
+            setCategories([
+                {
+                    name: 'Tất cả sản phẩm',
+                    icon: 'fa-solid fa-border-all'
+                },
+                ...apiCategories
+            ]);
         } catch (error) {
-            console.error('Lỗi khi tải danh sách sản phẩm:', error);
-            setErrorMessage('Không thể tải danh sách sản phẩm. Vui lòng kiểm tra API.');
-        } finally {
-            setLoading(false);
+            console.error('Lỗi khi tải danh mục sản phẩm:', error);
+
+            setCategories([
+                {
+                    name: 'Tất cả sản phẩm',
+                    icon: 'fa-solid fa-border-all'
+                }
+            ]);
         }
     };
 
-    const formatPrice = (price) => {
-        if (price === null || price === undefined) {
-            return 'Liên hệ';
+    const getCategoryIcon = (categoryName) => {
+        const text = (categoryName || '').toLowerCase();
+
+        if (text.includes('đầm') || text.includes('dạ hội')) {
+            return 'fa-solid fa-wand-magic-sparkles';
         }
 
-        return Number(price).toLocaleString('vi-VN') + ' đ';
-    };
-
-    const normalizeText = (text) => {
-        return (text || '')
-            .toString()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .trim();
-    };
-
-    const isMatchCategory = (product) => {
-        if (selectedCategory === 'Tất cả sản phẩm') {
-            return true;
+        if (text.includes('nam') || text.includes('công sở')) {
+            return 'fa-solid fa-user-tie';
         }
 
-        return normalizeText(product.categoryProductName) === normalizeText(selectedCategory);
-    };
-
-    const isMatchPrice = (product) => {
-        const price = Number(product.price || 0);
-
-        if (selectedPriceRange === 'all') {
-            return true;
+        if (text.includes('phụ kiện')) {
+            return 'fa-solid fa-gem';
         }
 
+        if (text.includes('biển')) {
+            return 'fa-solid fa-umbrella-beach';
+        }
+
+        if (text.includes('mùa đông')) {
+            return 'fa-solid fa-snowflake';
+        }
+
+        return 'fa-solid fa-shirt';
+    };
+
+    const getPriceRangeText = () => {
         if (selectedPriceRange === 'under500') {
-            return price < 500000;
+            return 'Dưới 500.000 đ';
         }
 
         if (selectedPriceRange === '500to1000') {
-            return price >= 500000 && price <= 1000000;
+            return '500.000 đ - 1.000.000 đ';
         }
 
         if (selectedPriceRange === 'over1000') {
-            return price > 1000000;
+            return 'Trên 1.000.000 đ';
         }
 
-        return true;
+        return 'Tất cả mức giá';
     };
-
-    const isMatchSearch = (product) => {
-        if (!searchTerm) {
-            return true;
-        }
-
-        const keyword = normalizeText(searchTerm);
-
-        const productName = normalizeText(product.name);
-        const productDescription = normalizeText(product.description);
-        const categoryName = normalizeText(product.categoryProductName);
-
-        return (
-            productName.includes(keyword) ||
-            productDescription.includes(keyword) ||
-            categoryName.includes(keyword)
-        );
-    };
-
-    const filteredProducts = products.filter((product) => {
-        return (
-            isMatchCategory(product) &&
-            isMatchPrice(product) &&
-            isMatchSearch(product)
-        );
-    });
-
-    if (loading) {
-        return (
-            <div className="product-loading">
-                <i className="fa-solid fa-spinner fa-spin"></i>
-                <span>Đang tải sản phẩm...</span>
-            </div>
-        );
-    }
-
-    if (errorMessage) {
-        return (
-            <div className="product-empty">
-                <i className="fa-solid fa-triangle-exclamation"></i>
-                <h4>{errorMessage}</h4>
-                <p>Hãy mở thử API: https://localhost:7076/api/Products</p>
-            </div>
-        );
-    }
-
-    if (filteredProducts.length === 0) {
-        return (
-            <div className="product-empty">
-                <i className="fa-solid fa-box-open"></i>
-                <h4>Không tìm thấy sản phẩm phù hợp</h4>
-                <p>Vui lòng thử danh mục, khoảng giá hoặc từ khóa khác.</p>
-            </div>
-        );
-    }
 
     return (
-        <div className="product-grid">
-            {filteredProducts.map((product) => {
-                const imageUrl = product.imageUrl
-                    ? `https://localhost:7076${product.imageUrl}`
-                    : '/no-image.png';
+        <div className="store-page">
+            <section className="store-banner">
+                <div>
+                    <span className="store-banner-tag">
+                        BỘ SƯU TẬP THỜI TRANG
+                    </span>
 
-                return (
-                    <div className="product-card" key={product.id}>
-                        <div className="product-image-wrap">
-                            <img
-                                src={imageUrl}
-                                alt={product.name}
-                                className="product-image"
-                            />
+                    <h1>Cửa hàng thời trang QuocBao Fashion</h1>
 
-                            <span className="product-category-badge">
-                                {product.categoryProductName || 'Chưa có danh mục'}
-                            </span>
-                        </div>
+                    <p>
+                        Khám phá các sản phẩm thời trang mới nhất, phù hợp cho
+                        dự tiệc, công sở, đi biển và phong cách hằng ngày.
+                    </p>
+                </div>
 
-                        <div className="product-card-body">
-                            <h4>{product.name}</h4>
+                <Link to="/" className="store-back-btn">
+                    <i className="fa-solid fa-house"></i>
+                    Về trang chủ
+                </Link>
+            </section>
 
-                            <p className="product-description">
-                                {product.description || 'Sản phẩm thời trang cao cấp'}
-                            </p>
+            <section className="store-layout">
+                <aside className="store-filter-sidebar">
+                    <div className="store-filter-box">
+                        <h4>
+                            <i className="fa-solid fa-layer-group"></i>
+                            Danh mục
+                        </h4>
 
-                            <div className="product-meta">
-                                <span className="product-price">
-                                    {formatPrice(product.price)}
-                                </span>
-
-                                <span className="product-stock">
-                                    Còn: {product.stockQuantity ?? 0}
-                                </span>
-                            </div>
-
-                            <div className="product-actions">
-                                <Link
-                                    to={`/product/${product.id}`}
-                                    className="product-detail-btn"
+                        <div className="store-filter-list">
+                            {categories.map((category) => (
+                                <button
+                                    key={category.name}
+                                    type="button"
+                                    className={
+                                        selectedCategory === category.name
+                                            ? 'store-filter-item active'
+                                            : 'store-filter-item'
+                                    }
+                                    onClick={() => setSelectedCategory(category.name)}
                                 >
-                                    <i className="fa-solid fa-eye"></i>
-                                    <span>Xem chi tiết</span>
-                                </Link>
-
-                                <button type="button" className="product-cart-btn">
-                                    <i className="fa-solid fa-cart-plus"></i>
+                                    <i className={category.icon}></i>
+                                    <span>{category.name}</span>
                                 </button>
-                            </div>
+                            ))}
                         </div>
                     </div>
-                );
-            })}
+
+                    <div className="store-filter-box">
+                        <h4>
+                            <i className="fa-solid fa-filter"></i>
+                            Khoảng giá
+                        </h4>
+
+                        <div className="store-filter-list">
+                            <button
+                                type="button"
+                                className={
+                                    selectedPriceRange === 'all'
+                                        ? 'store-filter-item active'
+                                        : 'store-filter-item'
+                                }
+                                onClick={() => setSelectedPriceRange('all')}
+                            >
+                                <i className="fa-solid fa-border-all"></i>
+                                <span>Tất cả mức giá</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                className={
+                                    selectedPriceRange === 'under500'
+                                        ? 'store-filter-item active'
+                                        : 'store-filter-item'
+                                }
+                                onClick={() => setSelectedPriceRange('under500')}
+                            >
+                                <i className="fa-solid fa-arrow-down-short-wide"></i>
+                                <span>Dưới 500.000 đ</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                className={
+                                    selectedPriceRange === '500to1000'
+                                        ? 'store-filter-item active'
+                                        : 'store-filter-item'
+                                }
+                                onClick={() => setSelectedPriceRange('500to1000')}
+                            >
+                                <i className="fa-solid fa-money-bill-wave"></i>
+                                <span>500.000 đ - 1.000.000 đ</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                className={
+                                    selectedPriceRange === 'over1000'
+                                        ? 'store-filter-item active'
+                                        : 'store-filter-item'
+                                }
+                                onClick={() => setSelectedPriceRange('over1000')}
+                            >
+                                <i className="fa-solid fa-arrow-up-short-wide"></i>
+                                <span>Trên 1.000.000 đ</span>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <div className="store-products-area">
+                    <div className="store-product-heading">
+                        <div>
+                            <h2>
+                                <i className="fa-solid fa-store"></i>
+                                Danh sách sản phẩm
+                            </h2>
+
+                            <p>
+                                Đang hiển thị danh mục:{' '}
+                                <strong>{selectedCategory}</strong>
+                            </p>
+
+                            {searchTerm && (
+                                <p className="store-search-result">
+                                    Kết quả tìm kiếm cho:{' '}
+                                    <strong>{searchTerm}</strong>
+                                </p>
+                            )}
+                        </div>
+
+                        <span className="store-price-status">
+                            {getPriceRangeText()}
+                        </span>
+                    </div>
+
+                    <ProductList
+                        selectedCategory={selectedCategory}
+                        selectedPriceRange={selectedPriceRange}
+                        searchTerm={searchTerm}
+                    />
+                </div>
+            </section>
         </div>
     );
 };
 
-export default ProductList;
+export default StorePage;

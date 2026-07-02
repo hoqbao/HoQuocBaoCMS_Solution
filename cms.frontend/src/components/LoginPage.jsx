@@ -8,20 +8,68 @@ const LoginPage = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
+    const demoUsers = [
+        {
+            username: 'admin',
+            email: 'admin@gmail.com',
+            password: '123456',
+            fullName: 'Quản trị viên'
+        }
+    ];
+
+    const getRegisteredUsers = () => {
+        const savedUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+
+        return Array.isArray(savedUsers) ? savedUsers : [];
+    };
+
     const handleLogin = (event) => {
         event.preventDefault();
 
-        if (!username.trim() || !password.trim()) {
+        setMessage('');
+
+        const usernameText = username.trim();
+        const passwordText = password.trim();
+
+        if (!usernameText || !passwordText) {
             setMessage('Vui lòng nhập tài khoản và mật khẩu.');
             return;
         }
 
-        const user = {
-            username: username.trim(),
-            fullName: username.trim()
+        const registeredUsers = getRegisteredUsers();
+
+        const allUsers = [
+            ...demoUsers,
+            ...registeredUsers
+        ];
+
+        const foundUser = allUsers.find((user) => {
+            const userUsername = (user.username || '').toLowerCase();
+            const userEmail = (user.email || '').toLowerCase();
+            const inputUsername = usernameText.toLowerCase();
+
+            const isMatchUsername =
+                userUsername === inputUsername ||
+                userEmail === inputUsername;
+
+            const isMatchPassword =
+                String(user.password || '') === passwordText;
+
+            return isMatchUsername && isMatchPassword;
+        });
+
+        if (!foundUser) {
+            setMessage('Tên đăng nhập hoặc mật khẩu không đúng.');
+            return;
+        }
+
+        const loginUser = {
+            username: foundUser.username,
+            fullName: foundUser.fullName || foundUser.username,
+            email: foundUser.email || ''
         };
 
-        onLogin(user);
+        onLogin(loginUser);
         navigate('/');
     };
 
@@ -86,6 +134,12 @@ const LoginPage = ({ onLogin }) => {
                                 onChange={(event) => setPassword(event.target.value)}
                             />
                         </div>
+                    </div>
+
+                    <div className="auth-forgot-row">
+                        <Link to="/forgot-password">
+                            Quên mật khẩu?
+                        </Link>
                     </div>
 
                     <button type="submit" className="auth-submit-btn">

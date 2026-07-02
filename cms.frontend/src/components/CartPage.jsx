@@ -35,13 +35,44 @@ const CartPage = () => {
         return `${IMAGE_BASE_URL}${imageUrl}`;
     };
 
+    const isValidEmail = (email) => {
+        if (!email.trim()) {
+            return true;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        return emailRegex.test(email.trim());
+    };
+
+    const isValidPhone = (phone) => {
+        const phoneRegex = /^0\d{9}$/;
+
+        return phoneRegex.test(phone.trim());
+    };
+
     const updateQuantity = (productId, quantity) => {
         if (quantity <= 0) {
             return;
         }
 
+        const product = cartItems.find(
+            (item) => Number(item.id) === Number(productId)
+        );
+
+        if (!product) {
+            return;
+        }
+
+        const stockQuantity = Number(product.stockQuantity || 0);
+
+        if (quantity > stockQuantity) {
+            setMessage(`Sản phẩm "${product.name}" chỉ còn ${stockQuantity} sản phẩm trong kho.`);
+            return;
+        }
+
         const updatedCart = cartItems.map((item) =>
-            item.id === productId
+            Number(item.id) === Number(productId)
                 ? { ...item, quantity: quantity }
                 : item
         );
@@ -49,11 +80,14 @@ const CartPage = () => {
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
+        setMessage('');
         window.dispatchEvent(new Event('cartUpdated'));
     };
 
     const removeItem = (productId) => {
-        const updatedCart = cartItems.filter((item) => item.id !== productId);
+        const updatedCart = cartItems.filter(
+            (item) => Number(item.id) !== Number(productId)
+        );
 
         setCartItems(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
@@ -74,6 +108,23 @@ const CartPage = () => {
         });
     };
 
+    const validateCartStock = () => {
+        for (const item of cartItems) {
+            const stockQuantity = Number(item.stockQuantity || 0);
+            const quantity = Number(item.quantity || 0);
+
+            if (stockQuantity <= 0) {
+                return `Sản phẩm "${item.name}" đã hết hàng.`;
+            }
+
+            if (quantity > stockQuantity) {
+                return `Sản phẩm "${item.name}" chỉ còn ${stockQuantity} sản phẩm trong kho.`;
+            }
+        }
+
+        return '';
+    };
+
     const handleOrderSubmit = async (event) => {
         event.preventDefault();
 
@@ -84,13 +135,35 @@ const CartPage = () => {
             return;
         }
 
+        const stockError = validateCartStock();
+
+        if (stockError) {
+            setMessage(stockError);
+            return;
+        }
+
         if (!customerInfo.fullName.trim()) {
             setMessage('Vui lòng nhập họ tên.');
             return;
         }
 
+        if (!customerInfo.email.trim()) {
+            setMessage('Vui lòng nhập email.');
+            return;
+        }
+
+        if (!isValidEmail(customerInfo.email)) {
+            setMessage('Email không đúng định dạng.');
+            return;
+        }
+
         if (!customerInfo.phone.trim()) {
             setMessage('Vui lòng nhập số điện thoại.');
+            return;
+        }
+
+        if (!isValidPhone(customerInfo.phone)) {
+            setMessage('Số điện thoại phải bắt đầu bằng số 0 và gồm 10 số.');
             return;
         }
 
@@ -100,17 +173,15 @@ const CartPage = () => {
         }
 
         const orderData = {
-            fullName: customerInfo.fullName,
-            email: customerInfo.email,
-            phone: customerInfo.phone,
-            address: customerInfo.address,
+            fullName: customerInfo.fullName.trim(),
+            email: customerInfo.email.trim(),
+            phone: customerInfo.phone.trim(),
+            address: customerInfo.address.trim(),
             items: cartItems.map((item) => ({
                 productId: item.id,
-                quantity: item.quantity
+                quantity: Number(item.quantity || 0)
             }))
         };
-
-        console.log('ORDER DATA:', orderData);
 
         try {
             const result = await orderService.createOrder(orderData);
@@ -120,7 +191,6 @@ const CartPage = () => {
             localStorage.removeItem('cartItems');
             setCartItems([]);
 
-            // Báo cho Header cập nhật lại số lượng giỏ hàng
             window.dispatchEvent(new Event('cartUpdated'));
 
             setCustomerInfo({
@@ -179,12 +249,15 @@ const CartPage = () => {
                                 <div className="cart-item-info">
                                     <h4>{item.name}</h4>
                                     <p>{formatPrice(item.price)}</p>
+                                    <small>
+                                        Tồn kho: {item.stockQuantity ?? 0}
+                                    </small>
                                 </div>
 
                                 <div className="cart-quantity">
                                     <button
                                         type="button"
-                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                        onClick={() => updateQuantity(item.id, Number(item.quantity || 0) - 1)}
                                     >
                                         -
                                     </button>
@@ -193,7 +266,7 @@ const CartPage = () => {
 
                                     <button
                                         type="button"
-                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                        onClick={() => updateQuantity(item.id, Number(item.quantity || 0) + 1)}
                                     >
                                         +
                                     </button>

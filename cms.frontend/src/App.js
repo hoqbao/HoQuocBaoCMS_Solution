@@ -21,15 +21,90 @@ import BlogPage from './components/BlogPage.jsx';
 import AboutPage from './components/AboutPage.jsx';
 
 import categoryProductService from './services/categoryProductService.js';
+import productService from './services/productService.js';
+import { IMAGE_BASE_URL } from './config.js';
+import ForgotPasswordPage from './components/ForgotPasswordPage.jsx';
 
 import './App.css';
+
+function HomeProductCard({ product }) {
+    const imageUrl = product.imageUrl
+        ? `${IMAGE_BASE_URL}${product.imageUrl}`
+        : '/no-image.png';
+
+    const formatPrice = (price) => {
+        if (price === null || price === undefined) {
+            return 'Liên hệ';
+        }
+
+        return Number(price).toLocaleString('vi-VN') + ' đ';
+    };
+
+    return (
+        <div className="product-card">
+            <div className="product-image-wrap">
+                <img
+                    src={imageUrl}
+                    alt={product.name}
+                    className="product-image"
+                />
+
+                <span className="product-category-badge">
+                    {product.categoryProductName || 'Chưa có danh mục'}
+                </span>
+            </div>
+
+            <div className="product-card-body">
+                <h4>{product.name}</h4>
+
+                <p className="product-description">
+                    {product.description || 'Sản phẩm thời trang cao cấp'}
+                </p>
+
+                <div className="product-meta">
+                    <span className="product-price">
+                        {formatPrice(product.price)}
+                    </span>
+
+                    <span className="product-stock">
+                        Còn: {product.stockQuantity ?? 0}
+                    </span>
+                </div>
+
+                <div className="product-actions">
+                    <Link
+                        to={`/product/${product.id}`}
+                        className="product-detail-btn"
+                    >
+                        <i className="fa-solid fa-eye"></i>
+                        <span>Xem chi tiết</span>
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function HomeSeeMoreButton() {
+    return (
+        <div className="home-see-more">
+            <Link to="/store" className="home-see-more-btn">
+                Xem thêm sản phẩm
+                <i className="fa-solid fa-arrow-right"></i>
+            </Link>
+        </div>
+    );
+}
 
 function HomePage() {
     const [selectedCategory, setSelectedCategory] = useState('Tất cả sản phẩm');
     const [categories, setCategories] = useState(['Tất cả sản phẩm']);
+    const [latestProducts, setLatestProducts] = useState([]);
+    const [hotProducts, setHotProducts] = useState([]);
 
     useEffect(() => {
         loadCategories();
+        loadHomeProducts();
     }, []);
 
     const loadCategories = async () => {
@@ -50,6 +125,18 @@ function HomePage() {
                 'Đồ nam công sở',
                 'Phụ kiện nam'
             ]);
+        }
+    };
+
+    const loadHomeProducts = async () => {
+        try {
+            const latestData = await productService.getLatestProducts();
+            const hotData = await productService.getHotProducts();
+
+            setLatestProducts(Array.isArray(latestData) ? latestData : []);
+            setHotProducts(Array.isArray(hotData) ? hotData : []);
+        } catch (error) {
+            console.error('Lỗi khi tải sản phẩm trang chủ:', error);
         }
     };
 
@@ -74,6 +161,10 @@ function HomePage() {
 
         if (text.includes('biển')) {
             return 'fa-solid fa-umbrella-beach me-1';
+        }
+
+        if (text.includes('mùa đông')) {
+            return 'fa-solid fa-snowflake me-1';
         }
 
         return 'fa-solid fa-shirt me-1';
@@ -106,7 +197,48 @@ function HomePage() {
                     <span>Đang hiển thị: {selectedCategory}</span>
                 </div>
 
-                <ProductList selectedCategory={selectedCategory} />
+                <ProductList
+                    selectedCategory={selectedCategory}
+                    limit={3}
+                />
+
+                <HomeSeeMoreButton />
+            </section>
+
+            <section className="home-section">
+                <div className="section-heading">
+                    <h3>Sản phẩm mới nhất</h3>
+                    <span>Top 3 sản phẩm vừa được thêm</span>
+                </div>
+
+                <div className="product-grid">
+                    {latestProducts.map((product) => (
+                        <HomeProductCard
+                            key={product.id}
+                            product={product}
+                        />
+                    ))}
+                </div>
+
+                <HomeSeeMoreButton />
+            </section>
+
+            <section className="home-section">
+                <div className="section-heading">
+                    <h3>Sản phẩm bán chạy / nổi bật</h3>
+                    <span>Top 3 sản phẩm được quan tâm</span>
+                </div>
+
+                <div className="product-grid">
+                    {hotProducts.map((product) => (
+                        <HomeProductCard
+                            key={product.id}
+                            product={product}
+                        />
+                    ))}
+                </div>
+
+                <HomeSeeMoreButton />
             </section>
 
             <section id="trend-section" className="trend-section">
@@ -116,6 +248,13 @@ function HomePage() {
                 </div>
 
                 <PostList limit={3} />
+
+                <div className="home-see-more">
+                    <Link to="/blog" className="home-see-more-btn">
+                        Xem thêm bài viết
+                        <i className="fa-solid fa-arrow-right"></i>
+                    </Link>
+                </div>
             </section>
         </>
     );
@@ -375,7 +514,10 @@ function App() {
                     path="/register"
                     element={<RegisterPage onLogin={handleLogin} />}
                 />
-
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
                 <Route
                     path="/"
                     element={withShopLayout(<HomePage />)}

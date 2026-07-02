@@ -6,7 +6,8 @@ import { IMAGE_BASE_URL } from '../config.js';
 const ProductList = ({
     selectedCategory = 'Tất cả sản phẩm',
     selectedPriceRange = 'all',
-    searchTerm = ''
+    searchTerm = '',
+    limit = null
 }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -86,13 +87,9 @@ const ProductList = ({
             return true;
         }
 
-        const searchableText = normalizeText(`
-            ${product.name || ''}
-            ${product.description || ''}
-            ${product.categoryProductName || ''}
-        `);
+        const productName = normalizeText(product.name);
 
-        return searchableText.includes(keyword);
+        return productName.includes(keyword);
     };
 
     const addToCart = (product) => {
@@ -104,8 +101,9 @@ const ProductList = ({
         }
 
         const currentCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-
-        const existingItem = currentCart.find((item) => item.id === product.id);
+        const existingItem = currentCart.find(
+            (item) => Number(item.id) === Number(product.id)
+        );
 
         let updatedCart = [];
 
@@ -118,7 +116,7 @@ const ProductList = ({
             }
 
             updatedCart = currentCart.map((item) =>
-                item.id === product.id
+                Number(item.id) === Number(product.id)
                     ? {
                         ...item,
                         quantity: newQuantity
@@ -141,8 +139,6 @@ const ProductList = ({
         }
 
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
-
-        // Dòng này dùng để cập nhật badge giỏ hàng trên Header realtime
         window.dispatchEvent(new Event('cartUpdated'));
 
         alert('Đã thêm sản phẩm vào giỏ hàng!');
@@ -155,6 +151,10 @@ const ProductList = ({
             isMatchSearch(product)
         );
     });
+
+    const displayProducts = limit
+        ? filteredProducts.slice(0, limit)
+        : filteredProducts;
 
     if (loading) {
         return (
@@ -177,17 +177,31 @@ const ProductList = ({
 
     if (filteredProducts.length === 0) {
         return (
-            <div className="product-empty">
-                <i className="fa-solid fa-box-open"></i>
-                <h4>Không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn</h4>
-                <p>Vui lòng thử danh mục, khoảng giá hoặc từ khóa khác.</p>
+            <div className="product-empty product-empty-illustration">
+                <div className="empty-icon-circle">
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                </div>
+
+                <h4>Không tìm thấy sản phẩm phù hợp</h4>
+
+                <p>
+                    Không có sản phẩm nào khớp với danh mục, khoảng giá hoặc từ khóa bạn đang tìm.
+                </p>
+
+                <div className="empty-suggestion">
+                    <span>
+                        <i className="fa-solid fa-lightbulb"></i>
+                        Gợi ý:
+                    </span>
+                    Thử chọn “Tất cả sản phẩm” hoặc nhập từ khóa ngắn hơn.
+                </div>
             </div>
         );
     }
 
     return (
         <div className="product-grid">
-            {filteredProducts.map((product) => {
+            {displayProducts.map((product) => {
                 const imageUrl = product.imageUrl
                     ? `${IMAGE_BASE_URL}${product.imageUrl}`
                     : '/no-image.png';
